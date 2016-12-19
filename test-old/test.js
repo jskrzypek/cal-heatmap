@@ -67,7 +67,7 @@ asyncTest("Destroying the calendar", function() {
 	expect(3);
 
 	var node = d3.select("body").append("div").attr("id", "test-destroy");
-	var cal = createCalendar({itemSelector: node.nodes()[0], animationDuration: 0, paintOnLoad: true});
+	var cal = createCalendar({itemSelector: node[0][0], animationDuration: 0, paintOnLoad: true});
 
 	ok(cal !== null, "the instance is created");
 
@@ -93,11 +93,11 @@ asyncTest("Highlighting one date", function() {
 	var highlightedDate = new Date(2000, 0, 1);
 	var cal = createCalendar({ animationDuration: 0, paintOnLoad: true, start: new Date(2000, 0), domain: "month" });
 	ok(cal.highlight(highlightedDate));
-	strictEqual(d3.selectAll("#cal-heatmap .highlight").nodes().length, 0);
+	strictEqual(d3.selectAll("#cal-heatmap .highlight")[0].length, 0);
 
 	setTimeout(function() {
-		strictEqual(d3.selectAll("#cal-heatmap .highlight").nodes().length, 1);
-		strictEqual(d3.selectAll("#cal-heatmap .highlight").nodes()[0].__data__.t, +highlightedDate);
+		strictEqual(d3.selectAll("#cal-heatmap .highlight")[0].length, 1);
+		strictEqual(d3.selectAll("#cal-heatmap .highlight")[0][0].__data__.t, +highlightedDate);
 
 		start();
 	}, 50);
@@ -112,15 +112,15 @@ asyncTest("Highlighting multiple dates", function() {
 	var highlightedDate = [new Date(2000, 0, 1), new Date(2000, 0, 2), new Date(2001, 0, 1)];
 	var cal = createCalendar({ itemSelector: "#hglt2", highlight: [new Date(2000, 0, 3)], animationDuration: 0, paintOnLoad: true, start: new Date(2000, 0), domain: "month", range: 1 });
 	ok(cal.highlight(highlightedDate));
-	strictEqual(d3.selectAll("#hglt2 .highlight").nodes().length, 1, "There is already one highlighted date, defined in init()");
+	strictEqual(d3.selectAll("#hglt2 .highlight")[0].length, 1, "There is already one highlighted date, defined in init()");
 
 	setTimeout(function() {
-		var highlightedCells = d3.selectAll("#hglt2 .highlight").nodes();
+		var highlightedCells = d3.selectAll("#hglt2 .highlight")[0];
 		strictEqual(highlightedCells.length, 2, "There is 2 highlighted dates");
 		strictEqual(highlightedCells[0].__data__.t, +highlightedDate[0]);
 		strictEqual(highlightedCells[1].__data__.t, +highlightedDate[1]);
 
-		var d = d3.selectAll("#hglt2 .m_1 .graph-rect").nodes()[2];
+		var d = d3.selectAll("#hglt2 .m_1 .graph-rect")[0][2];
 		strictEqual(d.getAttribute("class").trim(), "graph-rect", "The initial highlighted date is not highlighted anymore");
 		strictEqual(d.__data__.t, new Date(2000, 0, 3).getTime());
 
@@ -651,7 +651,7 @@ test("itemSelector accept a valid Element object", function() {
 	equal(cal.init({itemSelector: document.getElementsByClassName("u")[0], paintOnLoad: false}), true, "document.getElementsByClassName(\".u\") is a valid itemSelector");
 	equal($(".u .graph").length, 1, "Graph is appended to .u");
 
-	equal(cal.init({itemSelector: d3.select("[data=y]").nodes()[0], paintOnLoad: false}), true, "d3.select(\"[data=y]\").nodes()[0] is a valid itemSelector");
+	equal(cal.init({itemSelector: d3.select("[data=y]")[0][0], paintOnLoad: false}), true, "d3.select(\"[data=y]\")[0][0] is a valid itemSelector");
 	equal($("div[data=y] .graph").length, 1, "Graph is appended to div[data=y]");
 
 	$("#test").remove();
@@ -1311,11 +1311,11 @@ test("Removing existing legend", function() {
 	var cal = createCalendar({displayLegend: true, paintOnLoad: true});
 
 	equal(cal.options.displayLegend, true, "displayLegend setting is set to true");
-	notEqual(cal.root.select(".graph-legend").node(), null, "Legend exists int DOM");
+	notEqual(cal.root.select(".graph-legend")[0][0], null, "Legend exists int DOM");
 
 	equal(cal.removeLegend(), true, "removeLegend() return true when legend does exist");
 	equal(cal.options.displayLegend, false, "displayLegend setting is now set to false");
-	equal(cal.root.select(".graph-legend").node(), null, "Legend is now removed from the DOM");
+	equal(cal.root.select(".graph-legend")[0][0], null, "Legend is now removed from the DOM");
 });
 
 /*
@@ -1342,11 +1342,11 @@ test("Show not existing legend", function() {
 	var cal = createCalendar({displayLegend: false});
 
 	equal(cal.options.displayLegend, false, "displayLegend setting is set to false");
-	equal(cal.root.select(".graph-legend").node(), null, "There is no legend in the DOM");
+	equal(cal.root.select(".graph-legend")[0][0], null, "There is no legend in the DOM");
 
 	equal(cal.showLegend(), true, "showLegend() return true when legend does not exist yet");
 	equal(cal.options.displayLegend, true, "displayLegend setting is now set to true");
-	notEqual(cal.root.select(".graph-legend").node(), null, "Legend is now added into the DOM");
+	notEqual(cal.root.select(".graph-legend")[0][0], null, "Legend is now added into the DOM");
 });
 
 
@@ -1943,11 +1943,11 @@ module("DST: DST to Standard Time");
 		var cal = createCalendar({start: startDate, range: 4, paintOnLoad: true});
 		var labels = cal.root.selectAll(".graph-label");
 
-		strictEqual(labels.node().length, 4, "There is 4 graph labels");
-		equal(labels.node()[0].firstChild.data, "00:00");
-		equal(labels.node()[1].firstChild.data, "01:00");
-		equal(labels.node()[2].firstChild.data, "02:00");
-		equal(labels.node()[3].firstChild.data, "03:00");
+		strictEqual(labels[0].length, 4, "There is 4 graph labels");
+		equal(labels[0][0].firstChild.data, "00:00");
+		equal(labels[0][1].firstChild.data, "01:00");
+		equal(labels[0][2].firstChild.data, "02:00");
+		equal(labels[0][3].firstChild.data, "03:00");
 	});
 
 	test("DAY DOMAIN: the duplicate hour is compressed into a single hour", function() {
@@ -1956,11 +1956,11 @@ module("DST: DST to Standard Time");
 		var cal = createCalendar({start: startDate, range: 1, paintOnLoad: true, domain: "day"});
 		var cells = cal.root.selectAll(".graph-rect");
 
-		strictEqual(cells.node().length, 24, "There is 24 subDomains cells");
+		strictEqual(cells[0].length, 24, "There is 24 subDomains cells");
 
-		equal(cells.node()[0].__data__.t, startDate.getTime(), "The first cell is midnight");
-		equal(cells.node()[1].__data__.t, startDate.getTime() + 3600 * 1000 * 2, "The second cell is for the two 1am");
-		equal(cells.node()[2].__data__.t, startDate.getTime() + 3600 * 1000 * 3, "The third cell is for 2am");
+		equal(cells[0][0].__data__.t, startDate.getTime(), "The first cell is midnight");
+		equal(cells[0][1].__data__.t, startDate.getTime() + 3600 * 1000 * 2, "The second cell is for the two 1am");
+		equal(cells[0][2].__data__.t, startDate.getTime() + 3600 * 1000 * 3, "The third cell is for 2am");
 	});
 })();
 
@@ -1982,11 +1982,11 @@ module("DST: Standard Time to DST");
 		var cal = createCalendar({start: startDate, range: 4, paintOnLoad: true});
 		var labels = cal.root.selectAll(".graph-label");
 
-		strictEqual(labels.node().length, 4, "There is 4 graph labels");
-		equal(labels.node()[0].firstChild.data, "00:00");
-		equal(labels.node()[1].firstChild.data, "01:00");
-		equal(labels.node()[2].firstChild.data, "03:00", "3am is following 2am, there is no 2 am");
-		equal(labels.node()[3].firstChild.data, "04:00");
+		strictEqual(labels[0].length, 4, "There is 4 graph labels");
+		equal(labels[0][0].firstChild.data, "00:00");
+		equal(labels[0][1].firstChild.data, "01:00");
+		equal(labels[0][2].firstChild.data, "03:00", "3am is following 2am, there is no 2 am");
+		equal(labels[0][3].firstChild.data, "04:00");
 	});
 
 	test("DAY DOMAIN: the missing hour is skipped", function() {
@@ -1995,11 +1995,11 @@ module("DST: Standard Time to DST");
 		var cal = createCalendar({start: startDate, range: 1, paintOnLoad: true, domain: "day"});
 		var cells = cal.root.selectAll(".graph-rect");
 
-		strictEqual(cells.node().length, 23, "There is 23 subDomains cells");
+		strictEqual(cells[0].length, 23, "There is 23 subDomains cells");
 
-		equal(cells.node()[0].__data__.t, startDate.getTime(), "The first cell is midnight");
-		equal(cells.node()[1].__data__.t, startDate.getTime() + 3600 * 1000, "The second cell is for 1am");
-		equal(cells.node()[2].__data__.t, startDate.getTime() + 3600 * 1000 * 2, "The third cell is for 3am, there is no 2am");
+		equal(cells[0][0].__data__.t, startDate.getTime(), "The first cell is midnight");
+		equal(cells[0][1].__data__.t, startDate.getTime() + 3600 * 1000, "The second cell is for 1am");
+		equal(cells[0][2].__data__.t, startDate.getTime() + 3600 * 1000 * 2, "The third cell is for 3am, there is no 2am");
 	});
 })();
 
@@ -4161,7 +4161,7 @@ test("Cell label have different title formatting depending on whether it's fille
 		subDomainTitleFormat: title
 	});
 
-	equal(d3.selectAll("#cal-heatmap title").nodes().textContent, title.filled);
+	equal(d3.selectAll("#cal-heatmap title")[0].textContent, title.filled);
 	equal($("#cal-heatmap title")[1].textContent, title.empty);
 });*/
 

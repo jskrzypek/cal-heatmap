@@ -1,6 +1,10 @@
-import * as d3 from "d3";
+(function (global, factory) {
+    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('d3')) :
+    typeof define === 'function' && define.amd ? define(['d3'], factory) :
+    (global.CalHeatMap = factory(global.d3));
+}(this, (function (d3) { 'use strict';
 
-export default class {
+var calHeatmap = class {
     constructor() {
         "use strict";
 
@@ -1696,17 +1700,17 @@ export default class {
         	return d3.format(",g").apply(this, arguments);
         }
 
-        formatDate(d, format) {
+        formatDate(d, format$$1) {
             "use strict";
 
             if (arguments.length < 2) {
-                format = "title";
+                format$$1 = "title";
             }
 
-            if (typeof format === "function") {
-                return format(d);
+            if (typeof format$$1 === "function") {
+                return format$$1(d);
             } else {
-                var f = d3.timeFormat(format);
+                var f = d3.timeFormat(format$$1);
                 return f(d);
             }
         }
@@ -3105,7 +3109,7 @@ export default class {
 
             return string;
         }
-}
+};
 
 // =========================================================================//
 // DOMAIN POSITION COMPUTATION												//
@@ -3150,8 +3154,8 @@ class DomainPosition {
     shiftRightBy(exitingDomainDim) {
         "use strict";
 
-        this.positions.each(function(key, value, map) {
-            map.set(key, value - exitingDomainDim);
+        this.positions.each(function(key, value, map$$1) {
+            map$$1.set(key, value - exitingDomainDim);
         });
 
         var domains = this.getKeys();
@@ -3161,8 +3165,8 @@ class DomainPosition {
     shiftLeftBy(enteringDomainDim) {
         "use strict";
 
-        this.positions.each(function(key, value, map) {
-            map.set(key, value + enteringDomainDim);
+        this.positions.each(function(key, value, map$$1) {
+            map$$1.set(key, value + enteringDomainDim);
         });
 
         var domains = this.getKeys();
@@ -3523,3 +3527,8 @@ function arrayEquals(arrayA, arrayB) {
     }
     return true;
 }
+
+return calHeatmap;
+
+})));
+//# sourceMappingURL=cal-heatmap.umd.js.map
