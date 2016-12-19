@@ -1,6 +1,6 @@
 import * as d3 from "d3";
 
-export default class {
+export default class CalHeatMap {
     constructor() {
         "use strict";
 

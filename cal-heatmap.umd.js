@@ -4,7 +4,7 @@
     (global.CalHeatMap = factory(global.d3));
 }(this, (function (d3) { 'use strict';
 
-var calHeatmap = class {
+class CalHeatMap {
     constructor() {
         "use strict";
 
@@ -3109,7 +3109,7 @@ var calHeatmap = class {
 
             return string;
         }
-};
+}
 
 // =========================================================================//
 // DOMAIN POSITION COMPUTATION												//
@@ -3528,7 +3528,7 @@ function arrayEquals(arrayA, arrayB) {
     return true;
 }
 
-return calHeatmap;
+return CalHeatMap;
 
 })));
 //# sourceMappingURL=cal-heatmap.umd.js.map
