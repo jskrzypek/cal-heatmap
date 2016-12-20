@@ -2,13 +2,13 @@ import { max, min } from 'd3-array';
 import { map } from 'd3-collection';
 import { format } from 'd3-format';
 import { interpolateHcl } from 'd3-interpolate';
-import { csv, tsv, json, text } from 'd3-request';
+import { csv, json, text, tsv } from 'd3-request';
 import { scaleLinear, scaleThreshold } from 'd3-scale';
 import { event, select } from 'd3-selection';
 import { timeDays, timeHours, timeMinutes, timeMondays, timeMonths, timeSundays, timeYears } from 'd3-time';
 import { timeFormat } from 'd3-time-format';
 
-export default class CalHeatMap {
+class CalHeatMap {
     constructor() {
         "use strict";
 
@@ -1704,17 +1704,17 @@ export default class CalHeatMap {
         return format(",g").apply(this, arguments);
     }
 
-    formatDate(d, format) {
+    formatDate(d, format$$1) {
         "use strict";
 
         if (arguments.length < 2) {
-            format = "title";
+            format$$1 = "title";
         }
 
-        if (typeof format === "function") {
-            return format(d);
+        if (typeof format$$1 === "function") {
+            return format$$1(d);
         } else {
-            var f = timeFormat(format);
+            var f = timeFormat(format$$1);
             return f(d);
         }
     }
@@ -3158,8 +3158,8 @@ class DomainPosition {
     shiftRightBy(exitingDomainDim) {
         "use strict";
 
-        this.positions.each(function(key, value, map) {
-            map.set(key, value - exitingDomainDim);
+        this.positions.each(function(key, value, map$$1) {
+            map$$1.set(key, value - exitingDomainDim);
         });
 
         var domains = this.getKeys();
@@ -3169,8 +3169,8 @@ class DomainPosition {
     shiftLeftBy(enteringDomainDim) {
         "use strict";
 
-        this.positions.each(function(key, value, map) {
-            map.set(key, value + enteringDomainDim);
+        this.positions.each(function(key, value, map$$1) {
+            map$$1.set(key, value + enteringDomainDim);
         });
 
         var domains = this.getKeys();
@@ -3531,3 +3531,6 @@ function arrayEquals(arrayA, arrayB) {
     }
     return true;
 }
+
+export default CalHeatMap;
+//# sourceMappingURL=cal-heatmap.es2015.js.map
