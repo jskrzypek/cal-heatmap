@@ -1,10 +1,10 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('d3')) :
-    typeof define === 'function' && define.amd ? define(['d3'], factory) :
-    (global.CalHeatMap = factory(global.d3));
-}(this, (function (d3) { 'use strict';
+    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('d3-array'), require('d3-collection'), require('d3-format'), require('d3-interpolate'), require('d3-request'), require('d3-scale'), require('d3-selection'), require('d3-time'), require('d3-time-format')) :
+    typeof define === 'function' && define.amd ? define(['d3-array', 'd3-collection', 'd3-format', 'd3-interpolate', 'd3-request', 'd3-scale', 'd3-selection', 'd3-time', 'd3-time-format'], factory) :
+    (global.CalHeatMap = factory(global.d3,global.d3,global.d3,global.d3,global.d3,global.d3,global.d3,global.d3,global.d3));
+}(this, (function (d3Array,d3Collection,d3Format,d3Interpolate,d3Request,d3Scale,d3Selection,d3Time,d3TimeFormat) { 'use strict';
 
-var calHeatmap = class {
+class CalHeatMap {
     constructor() {
         "use strict";
 
@@ -589,7 +589,7 @@ var calHeatmap = class {
 
         // Record all the valid domains
         // Each domain value is a timestamp in milliseconds
-        this._domains = d3.map();
+        this._domains = d3Collection.map();
 
         this.graphDim = {
             width: 0,
@@ -639,11 +639,11 @@ var calHeatmap = class {
                 }));
             });
 
-            self.root = d3.select(self.options.itemSelector).append("svg").attr("class", "cal-heatmap-container");
+            self.root = d3Selection.select(self.options.itemSelector).append("svg").attr("class", "cal-heatmap-container");
 
-            self.tooltip = d3.select(self.options.itemSelector)
+            self.tooltip = d3Selection.select(self.options.itemSelector)
                 .attr("style", function() {
-                    var current = d3.select(self.options.itemSelector).attr("style");
+                    var current = d3Selection.select(self.options.itemSelector).attr("style");
                     return (current !== null ? current : "") + "position:relative;";
                 })
                 .append("div")
@@ -681,15 +681,15 @@ var calHeatmap = class {
             // ATTACHING DOMAIN NAVIGATION EVENT										//
             // =========================================================================//
             if (self.options.nextSelector !== false) {
-                d3.select(self.options.nextSelector).on("click." + self.options.itemNamespace, function() {
-                    d3.event.preventDefault();
+                d3Selection.select(self.options.nextSelector).on("click." + self.options.itemNamespace, function() {
+                    d3Selection.event.preventDefault();
                     return self.loadNextDomain(1);
                 });
             }
 
             if (self.options.previousSelector !== false) {
-                d3.select(self.options.previousSelector).on("click." + self.options.itemNamespace, function() {
-                    d3.event.preventDefault();
+                d3Selection.select(self.options.previousSelector).on("click." + self.options.itemNamespace, function() {
+                    d3Selection.event.preventDefault();
                     return self.loadPreviousDomain(1);
                 });
             }
@@ -1160,7 +1160,7 @@ var calHeatmap = class {
             throw new Error("The data type '" + options.dataType + "' is not valid data type");
         }
 
-        if (d3.select(options.itemSelector).node() === null) {
+        if (d3Selection.select(options.itemSelector).node() === null) {
             throw new Error("The node '" + options.itemSelector + "' specified in itemSelector does not exists");
         }
 
@@ -1390,1726 +1390,1726 @@ var calHeatmap = class {
 
     }
 
-        /**
-         * Convert a keyword or an array of keyword/date to an array of date objects
-         *
-         * @param  {string|array|Date} value Data to convert
-         * @return {array}       An array of Dates
-         */
-        expandDateSetting(value) {
-            "use strict";
+    /**
+     * Convert a keyword or an array of keyword/date to an array of date objects
+     *
+     * @param  {string|array|Date} value Data to convert
+     * @return {array}       An array of Dates
+     */
+    expandDateSetting(value) {
+        "use strict";
 
-            if (!Array.isArray(value)) {
-                value = [value];
+        if (!Array.isArray(value)) {
+            value = [value];
+        }
+
+        return value.map(function(data) {
+            if (data === "now") {
+                return new Date();
             }
+            if (data instanceof Date) {
+                return data;
+            }
+            return false;
+        }).filter(function(d) {
+            return d !== false;
+        });
+    }
 
-            return value.map(function(data) {
-                if (data === "now") {
-                    return new Date();
-                }
-                if (data instanceof Date) {
-                    return data;
-                }
-                return false;
-            }).filter(function(d) {
-                return d !== false;
+    /**
+     * Fill the calendar by coloring the cells
+     *
+     * @param array svg An array of html node to apply the transformation to (optional)
+     *                  It's used to limit the painting to only a subset of the calendar
+     * @return void
+     */
+    fill(svg) {
+        "use strict";
+
+        var parent = this;
+        var options = parent.options;
+
+        if (arguments.length === 0) {
+            svg = parent.root.selectAll(".graph-domain");
+        }
+
+        var rect = svg
+            .selectAll("svg").selectAll("g")
+            .data(function(d) {
+                return parent._domains.get(d);
             });
-        }
 
         /**
-         * Fill the calendar by coloring the cells
-         *
-         * @param array svg An array of html node to apply the transformation to (optional)
-         *                  It's used to limit the painting to only a subset of the calendar
-         * @return void
+         * Colorize the cell via a style attribute if enabled
          */
-        fill(svg) {
-            "use strict";
-
-            var parent = this;
-            var options = parent.options;
-
-            if (arguments.length === 0) {
-                svg = parent.root.selectAll(".graph-domain");
-            }
-
-            var rect = svg
-                .selectAll("svg").selectAll("g")
-                .data(function(d) {
-                    return parent._domains.get(d);
-                });
-
-            /**
-             * Colorize the cell via a style attribute if enabled
-             */
-            function addStyle(element) {
-                if (parent.legendScale === null) {
-                    return false;
-                }
-
-                element.attr("fill", function(d) {
-                    if (d.v === null && (options.hasOwnProperty("considerMissingDataAsZero") && !options.considerMissingDataAsZero)) {
-                        if (options.legendColors.hasOwnProperty("base")) {
-                            return options.legendColors.base;
-                        }
-                    }
-
-                    if (options.legendColors !== null && options.legendColors.hasOwnProperty("empty") &&
-                        (d.v === 0 || (d.v === null && options.hasOwnProperty("considerMissingDataAsZero") && options.considerMissingDataAsZero))
-                    ) {
-                        return options.legendColors.empty;
-                    }
-
-                    if (d.v < 0 && options.legend[0] > 0 && options.legendColors !== null && options.legendColors.hasOwnProperty("overflow")) {
-                        return options.legendColors.overflow;
-                    }
-
-                    return parent.legendScale(Math.min(d.v, options.legend[options.legend.length - 1]));
-                });
-            }
-
-            rect.transition().duration(options.animationDuration).select("rect")
-                .attr("class", function(d) {
-
-                    var htmlClass = parent.getHighlightClassName(d.t).trim().split(" ");
-                    var pastDate = parent.dateIsLessThan(d.t, new Date());
-                    var sameDate = parent.dateIsEqual(d.t, new Date());
-
-                    if (parent.legendScale === null ||
-                        (d.v === null && (options.hasOwnProperty("considerMissingDataAsZero") && !options.considerMissingDataAsZero) && !options.legendColors.hasOwnProperty("base"))
-                    ) {
-                        htmlClass.push("graph-rect");
-                    }
-
-                    if (sameDate) {
-                        htmlClass.push("now");
-                    } else if (!pastDate) {
-                        htmlClass.push("future");
-                    }
-
-                    if (d.v !== null) {
-                        htmlClass.push(parent.Legend.getClass(d.v, (parent.legendScale === null)));
-                    } else if (options.considerMissingDataAsZero && pastDate) {
-                        htmlClass.push(parent.Legend.getClass(0, (parent.legendScale === null)));
-                    }
-
-                    if (options.onClick !== null) {
-                        htmlClass.push("hover_cursor");
-                    }
-
-                    return htmlClass.join(" ");
-                })
-                .call(addStyle);
-
-            rect.transition().duration(options.animationDuration).select("title")
-                .text(function(d) {
-                    return parent.getSubDomainTitle(d);
-                });
-
-            function formatSubDomainText(element) {
-                if (typeof options.subDomainTextFormat === "function") {
-                    element.text(function(d) {
-                        return options.subDomainTextFormat(d.t, d.v);
-                    });
-                }
-            }
-
-            /**
-             * Change the subDomainText class if necessary
-             * Also change the text, e.g when text is representing the value
-             * instead of the date
-             */
-            rect.transition().duration(options.animationDuration).select("text")
-                .attr("class", function(d) {
-                    return "subdomain-text" + parent.getHighlightClassName(d.t);
-                })
-                .call(formatSubDomainText);
-        }
-
-        /**
-         * Sprintf like function.
-         * Replaces placeholders {0} in string with values from provided object.
-         * 
-         * @param string formatted String containing placeholders.
-         * @param object args Object with properties to replace placeholders in string.
-         * 
-         * @return String
-         */
-        formatStringWithObject(formatted, args) {
-            "use strict";
-            for (var prop in args) {
-                if (args.hasOwnProperty(prop)) {
-                    var regexp = new RegExp("\\{" + prop + "\\}", "gi");
-                    formatted = formatted.replace(regexp, args[prop]);
-                }
-            }
-            return formatted;
-        }
-
-        // =========================================================================//
-        // EVENTS CALLBACK															//
-        // =========================================================================//
-
-        /**
-         * Helper method for triggering event callback
-         *
-         * @param  string	eventName       Name of the event to trigger
-         * @param  array	successArgs     List of argument to pass to the callback
-         * @param  boolean  skip			Whether to skip the event triggering
-         * @return mixed	True when the triggering was skipped, false on error, else the callback function
-         */
-        triggerEvent(eventName, successArgs, skip) {
-            "use strict";
-
-            if ((arguments.length === 3 && skip) || this.options[eventName] === null) {
-                return true;
-            }
-
-            if (typeof this.options[eventName] === "function") {
-                if (typeof successArgs === "function") {
-                    successArgs = successArgs();
-                }
-                return this.options[eventName].apply(this, successArgs);
-            } else {
-                console.log("Provided callback for " + eventName + " is not a function.");
-                return false;
-            }
-        }
-
-        /**
-         * Event triggered on a mouse click on a subDomain cell
-         *
-         * @param  Date		d		Date of the subdomain block
-         * @param  int		itemNb	Number of items in that date
-         */
-        onClick(d, itemNb) {
-            "use strict";
-
-            return this.triggerEvent("onClick", [d, itemNb]);
-        }
-
-        /**
-         * Event triggered after drawing the calendar, byt before filling it with data
-         */
-        afterLoad() {
-            "use strict";
-
-            return this.triggerEvent("afterLoad");
-        }
-
-        /**
-         * Event triggered after completing drawing and filling the calendar
-         */
-        onComplete() {
-            "use strict";
-
-            var response = this.triggerEvent("onComplete", [], this._completed);
-            this._completed = true;
-            return response;
-        }
-
-        /**
-         * Event triggered after shifting the calendar one domain back
-         *
-         * @param  Date		start	Domain start date
-         * @param  Date		end		Domain end date
-         */
-        afterLoadPreviousDomain(start) {
-            "use strict";
-
-            var parent = this;
-            return this.triggerEvent("afterLoadPreviousDomain", function() {
-                var subDomain = parent.getSubDomain(start);
-                return [subDomain.shift(), subDomain.pop()];
-            });
-        }
-
-        /**
-         * Event triggered after shifting the calendar one domain above
-         *
-         * @param  Date		start	Domain start date
-         * @param  Date		end		Domain end date
-         */
-        afterLoadNextDomain(start) {
-            "use strict";
-
-            var parent = this;
-            return this.triggerEvent("afterLoadNextDomain", function() {
-                var subDomain = parent.getSubDomain(start);
-                return [subDomain.shift(), subDomain.pop()];
-            });
-        }
-
-        /**
-         * Event triggered after loading the leftmost domain allowed by minDate
-         *
-         * @param  boolean  reached True if the leftmost domain was reached
-         */
-        onMinDomainReached(reached) {
-            "use strict";
-
-            this._minDomainReached = reached;
-            return this.triggerEvent("onMinDomainReached", [reached]);
-        }
-
-        /**
-         * Event triggered after loading the rightmost domain allowed by maxDate
-         *
-         * @param  boolean  reached True if the rightmost domain was reached
-         */
-        onMaxDomainReached(reached) {
-            "use strict";
-
-            this._maxDomainReached = reached;
-            return this.triggerEvent("onMaxDomainReached", [reached]);
-        }
-
-        checkIfMinDomainIsReached(date, upperBound) {
-            "use strict";
-
-            if (this.minDomainIsReached(date)) {
-                this.onMinDomainReached(true);
-            }
-
-            if (arguments.length === 2) {
-                if (this._maxDomainReached && !this.maxDomainIsReached(upperBound)) {
-                    this.onMaxDomainReached(false);
-                }
-            }
-        }
-
-        checkIfMaxDomainIsReached(date, lowerBound) {
-            "use strict";
-
-            if (this.maxDomainIsReached(date)) {
-                this.onMaxDomainReached(true);
-            }
-
-            if (arguments.length === 2) {
-                if (this._minDomainReached && !this.minDomainIsReached(lowerBound)) {
-                    this.onMinDomainReached(false);
-                }
-            }
-        }
-
-        // =========================================================================//
-        // FORMATTER																//
-        // =========================================================================//
-
-        formatNumber() {
-        	return d3.format(",g").apply(this, arguments);
-        }
-
-        formatDate(d, format$$1) {
-            "use strict";
-
-            if (arguments.length < 2) {
-                format$$1 = "title";
-            }
-
-            if (typeof format$$1 === "function") {
-                return format$$1(d);
-            } else {
-                var f = d3.timeFormat(format$$1);
-                return f(d);
-            }
-        }
-
-        getSubDomainTitle(d) {
-            "use strict";
-
-            if (d.v === null && !this.options.considerMissingDataAsZero) {
-                return this.formatStringWithObject(this.options.subDomainTitleFormat.empty, {
-                    date: this.formatDate(new Date(d.t), this.options.subDomainDateFormat)
-                });
-            } else {
-                var value = d.v;
-                // Consider null as 0
-                if (value === null && this.options.considerMissingDataAsZero) {
-                    value = 0;
-                }
-
-                return this.formatStringWithObject(this.options.subDomainTitleFormat.filled, {
-                    count: this.formatNumber(value),
-                    name: this.options.itemName[(value !== 1 ? 1 : 0)],
-                    connector: this._domainType[this.options.subDomain].format.connector,
-                    date: this.formatDate(new Date(d.t), this.options.subDomainDateFormat)
-                });
-            }
-        }
-
-        // =========================================================================//
-        // DOMAIN NAVIGATION														//
-        // =========================================================================//
-
-        /**
-         * Shift the calendar one domain forward
-         *
-         * The new domain is loaded only if it's not beyond maxDate
-         *
-         * @param int n Number of domains to load
-         * @return bool True if the next domain was loaded, else false
-         */
-        loadNextDomain(n) {
-            "use strict";
-
-            if (this._maxDomainReached || n === 0) {
+        function addStyle(element) {
+            if (parent.legendScale === null) {
                 return false;
             }
 
-            var bound = this.loadNewDomains(this.NAVIGATE_RIGHT, this.getDomain(this.getNextDomain(), n));
+            element.attr("fill", function(d) {
+                if (d.v === null && (options.hasOwnProperty("considerMissingDataAsZero") && !options.considerMissingDataAsZero)) {
+                    if (options.legendColors.hasOwnProperty("base")) {
+                        return options.legendColors.base;
+                    }
+                }
 
-            this.afterLoadNextDomain(bound.end);
-            this.checkIfMaxDomainIsReached(this.getNextDomain().getTime(), bound.start);
+                if (options.legendColors !== null && options.legendColors.hasOwnProperty("empty") &&
+                    (d.v === 0 || (d.v === null && options.hasOwnProperty("considerMissingDataAsZero") && options.considerMissingDataAsZero))
+                ) {
+                    return options.legendColors.empty;
+                }
 
+                if (d.v < 0 && options.legend[0] > 0 && options.legendColors !== null && options.legendColors.hasOwnProperty("overflow")) {
+                    return options.legendColors.overflow;
+                }
+
+                return parent.legendScale(Math.min(d.v, options.legend[options.legend.length - 1]));
+            });
+        }
+
+        rect.transition().duration(options.animationDuration).select("rect")
+            .attr("class", function(d) {
+
+                var htmlClass = parent.getHighlightClassName(d.t).trim().split(" ");
+                var pastDate = parent.dateIsLessThan(d.t, new Date());
+                var sameDate = parent.dateIsEqual(d.t, new Date());
+
+                if (parent.legendScale === null ||
+                    (d.v === null && (options.hasOwnProperty("considerMissingDataAsZero") && !options.considerMissingDataAsZero) && !options.legendColors.hasOwnProperty("base"))
+                ) {
+                    htmlClass.push("graph-rect");
+                }
+
+                if (sameDate) {
+                    htmlClass.push("now");
+                } else if (!pastDate) {
+                    htmlClass.push("future");
+                }
+
+                if (d.v !== null) {
+                    htmlClass.push(parent.Legend.getClass(d.v, (parent.legendScale === null)));
+                } else if (options.considerMissingDataAsZero && pastDate) {
+                    htmlClass.push(parent.Legend.getClass(0, (parent.legendScale === null)));
+                }
+
+                if (options.onClick !== null) {
+                    htmlClass.push("hover_cursor");
+                }
+
+                return htmlClass.join(" ");
+            })
+            .call(addStyle);
+
+        rect.transition().duration(options.animationDuration).select("title")
+            .text(function(d) {
+                return parent.getSubDomainTitle(d);
+            });
+
+        function formatSubDomainText(element) {
+            if (typeof options.subDomainTextFormat === "function") {
+                element.text(function(d) {
+                    return options.subDomainTextFormat(d.t, d.v);
+                });
+            }
+        }
+
+        /**
+         * Change the subDomainText class if necessary
+         * Also change the text, e.g when text is representing the value
+         * instead of the date
+         */
+        rect.transition().duration(options.animationDuration).select("text")
+            .attr("class", function(d) {
+                return "subdomain-text" + parent.getHighlightClassName(d.t);
+            })
+            .call(formatSubDomainText);
+    }
+
+    /**
+     * Sprintf like function.
+     * Replaces placeholders {0} in string with values from provided object.
+     * 
+     * @param string formatted String containing placeholders.
+     * @param object args Object with properties to replace placeholders in string.
+     * 
+     * @return String
+     */
+    formatStringWithObject(formatted, args) {
+        "use strict";
+        for (var prop in args) {
+            if (args.hasOwnProperty(prop)) {
+                var regexp = new RegExp("\\{" + prop + "\\}", "gi");
+                formatted = formatted.replace(regexp, args[prop]);
+            }
+        }
+        return formatted;
+    }
+
+    // =========================================================================//
+    // EVENTS CALLBACK															//
+    // =========================================================================//
+
+    /**
+     * Helper method for triggering event callback
+     *
+     * @param  string	eventName       Name of the event to trigger
+     * @param  array	successArgs     List of argument to pass to the callback
+     * @param  boolean  skip			Whether to skip the event triggering
+     * @return mixed	True when the triggering was skipped, false on error, else the callback function
+     */
+    triggerEvent(eventName, successArgs, skip) {
+        "use strict";
+
+        if ((arguments.length === 3 && skip) || this.options[eventName] === null) {
             return true;
         }
 
-        /**
-         * Shift the calendar one domain backward
-         *
-         * The previous domain is loaded only if it's not beyond the minDate
-         *
-         * @param int n Number of domains to load
-         * @return bool True if the previous domain was loaded, else false
-         */
-        loadPreviousDomain(n) {
-            "use strict";
-
-            if (this._minDomainReached || n === 0) {
-                return false;
+        if (typeof this.options[eventName] === "function") {
+            if (typeof successArgs === "function") {
+                successArgs = successArgs();
             }
+            return this.options[eventName].apply(this, successArgs);
+        } else {
+            console.log("Provided callback for " + eventName + " is not a function.");
+            return false;
+        }
+    }
 
-            var bound = this.loadNewDomains(this.NAVIGATE_LEFT, this.getDomain(this.getDomainKeys()[0], -n).reverse());
+    /**
+     * Event triggered on a mouse click on a subDomain cell
+     *
+     * @param  Date		d		Date of the subdomain block
+     * @param  int		itemNb	Number of items in that date
+     */
+    onClick(d, itemNb) {
+        "use strict";
 
-            this.afterLoadPreviousDomain(bound.start);
-            this.checkIfMinDomainIsReached(bound.start, bound.end);
+        return this.triggerEvent("onClick", [d, itemNb]);
+    }
 
-            return true;
+    /**
+     * Event triggered after drawing the calendar, byt before filling it with data
+     */
+    afterLoad() {
+        "use strict";
+
+        return this.triggerEvent("afterLoad");
+    }
+
+    /**
+     * Event triggered after completing drawing and filling the calendar
+     */
+    onComplete() {
+        "use strict";
+
+        var response = this.triggerEvent("onComplete", [], this._completed);
+        this._completed = true;
+        return response;
+    }
+
+    /**
+     * Event triggered after shifting the calendar one domain back
+     *
+     * @param  Date		start	Domain start date
+     * @param  Date		end		Domain end date
+     */
+    afterLoadPreviousDomain(start) {
+        "use strict";
+
+        var parent = this;
+        return this.triggerEvent("afterLoadPreviousDomain", function() {
+            var subDomain = parent.getSubDomain(start);
+            return [subDomain.shift(), subDomain.pop()];
+        });
+    }
+
+    /**
+     * Event triggered after shifting the calendar one domain above
+     *
+     * @param  Date		start	Domain start date
+     * @param  Date		end		Domain end date
+     */
+    afterLoadNextDomain(start) {
+        "use strict";
+
+        var parent = this;
+        return this.triggerEvent("afterLoadNextDomain", function() {
+            var subDomain = parent.getSubDomain(start);
+            return [subDomain.shift(), subDomain.pop()];
+        });
+    }
+
+    /**
+     * Event triggered after loading the leftmost domain allowed by minDate
+     *
+     * @param  boolean  reached True if the leftmost domain was reached
+     */
+    onMinDomainReached(reached) {
+        "use strict";
+
+        this._minDomainReached = reached;
+        return this.triggerEvent("onMinDomainReached", [reached]);
+    }
+
+    /**
+     * Event triggered after loading the rightmost domain allowed by maxDate
+     *
+     * @param  boolean  reached True if the rightmost domain was reached
+     */
+    onMaxDomainReached(reached) {
+        "use strict";
+
+        this._maxDomainReached = reached;
+        return this.triggerEvent("onMaxDomainReached", [reached]);
+    }
+
+    checkIfMinDomainIsReached(date, upperBound) {
+        "use strict";
+
+        if (this.minDomainIsReached(date)) {
+            this.onMinDomainReached(true);
         }
 
-        loadNewDomains(direction, newDomains) {
-            "use strict";
-
-            var parent = this;
-            var backward = direction === this.NAVIGATE_LEFT;
-            var i = -1;
-            var total = newDomains.length;
-            var domains = this.getDomainKeys();
-
-            function buildSubDomain(d) {
-                return { t: parent._domainType[parent.options.subDomain].extractUnit(d), v: null };
-            }
-
-            // Remove out of bound domains from list of new domains to prepend
-            while (++i < total) {
-                if (backward && this.minDomainIsReached(newDomains[i])) {
-                    newDomains = newDomains.slice(0, i + 1);
-                    break;
-                }
-                if (!backward && this.maxDomainIsReached(newDomains[i])) {
-                    newDomains = newDomains.slice(0, i);
-                    break;
-                }
-            }
-
-            newDomains = newDomains.slice(-this.options.range);
-
-            for (i = 0, total = newDomains.length; i < total; i++) {
-                this._domains.set(
-                    newDomains[i].getTime(),
-                    this.getSubDomain(newDomains[i]).map(buildSubDomain)
-                );
-
-                this._domains.remove(backward ? domains.pop() : domains.shift());
-            }
-
-            domains = this.getDomainKeys();
-
-            if (backward) {
-                newDomains = newDomains.reverse();
-            }
-
-            this.paint(direction);
-
-            this.getDatas(
-                this.options.data,
-                newDomains[0],
-                this.getSubDomain(newDomains[newDomains.length - 1]).pop(),
-                function() {
-                    parent.fill(parent.lastInsertedSvg);
-                }
-            );
-
-            return {
-                start: newDomains[backward ? 0 : 1],
-                end: domains[domains.length - 1]
-            };
-        }
-
-        /**
-         * Return whether a date is inside the scope determined by maxDate
-         *
-         * @param int datetimestamp The timestamp in ms to test
-         * @return bool True if the specified date correspond to the calendar upper bound
-         */
-        maxDomainIsReached(datetimestamp) {
-            "use strict";
-
-            return (this.options.maxDate !== null && (this.options.maxDate.getTime() < datetimestamp));
-        }
-
-        /**
-         * Return whether a date is inside the scope determined by minDate
-         *
-         * @param int datetimestamp The timestamp in ms to test
-         * @return bool True if the specified date correspond to the calendar lower bound
-         */
-        minDomainIsReached(datetimestamp) {
-            "use strict";
-
-            return (this.options.minDate !== null && (this.options.minDate.getTime() >= datetimestamp));
-        }
-
-        /**
-         * Return the list of the calendar's domain timestamp
-         *
-         * @return Array a sorted array of timestamp
-         */
-        getDomainKeys() {
-            "use strict";
-
-            return this._domains.keys()
-                .map(function(d) {
-                    return parseInt(d, 10);
-                })
-                .sort(function(a, b) {
-                    return a - b;
-                });
-        }
-
-        // =========================================================================//
-        // POSITIONNING																//
-        // =========================================================================//
-
-        positionSubDomainX(d) {
-            "use strict";
-
-            var index = this._domainType[this.options.subDomain].position.x(new Date(d));
-            return index * this.options.cellSize + index * this.options.cellPadding;
-        }
-
-        positionSubDomainY(d) {
-            "use strict";
-
-            var index = this._domainType[this.options.subDomain].position.y(new Date(d));
-            return index * this.options.cellSize + index * this.options.cellPadding;
-        }
-
-        getSubDomainColumnNumber(d) {
-            "use strict";
-
-            if (this.options.rowLimit > 0) {
-                var i = this._domainType[this.options.subDomain].maxItemNumber;
-                if (typeof i === "function") {
-                    i = i(d);
-                }
-                return Math.ceil(i / this.options.rowLimit);
-            }
-
-            var j = this._domainType[this.options.subDomain].defaultColumnNumber;
-            if (typeof j === "function") {
-                j = j(d);
-
-            }
-            return this.options.colLimit || j;
-        }
-
-        getSubDomainRowNumber(d) {
-            "use strict";
-
-            if (this.options.colLimit > 0) {
-                var i = this._domainType[this.options.subDomain].maxItemNumber;
-                if (typeof i === "function") {
-                    i = i(d);
-                }
-                return Math.ceil(i / this.options.colLimit);
-            }
-
-            var j = this._domainType[this.options.subDomain].defaultRowNumber;
-            if (typeof j === "function") {
-                j = j(d);
-
-            }
-            return this.options.rowLimit || j;
-        }
-
-        /**
-         * Return a classname if the specified date should be highlighted
-         *
-         * @param  timestamp date Date of the current subDomain
-         * @return String the highlight class
-         */
-        getHighlightClassName(d) {
-            "use strict";
-
-            d = new Date(d);
-
-            if (this.options.highlight.length > 0) {
-                for (var i in this.options.highlight) {
-                    if (this.dateIsEqual(this.options.highlight[i], d)) {
-                        return this.isNow(this.options.highlight[i]) ? " highlight-now" : " highlight";
-                    }
-                }
-            }
-            return "";
-        }
-
-        /**
-         * Return whether the specified date is now,
-         * according to the type of subdomain
-         *
-         * @param  Date d The date to compare
-         * @return bool True if the date correspond to a subdomain cell
-         */
-        isNow(d) {
-            "use strict";
-
-            return this.dateIsEqual(d, new Date());
-        }
-
-        /**
-         * Return whether 2 dates are equals
-         * This function is subdomain-aware,
-         * and dates comparison are dependent of the subdomain
-         *
-         * @param  Date dateA First date to compare
-         * @param  Date dateB Secon date to compare
-         * @return bool true if the 2 dates are equals
-         */
-        /* jshint maxcomplexity: false */
-        dateIsEqual(dateA, dateB) {
-            "use strict";
-
-            if (!(dateA instanceof Date)) {
-                dateA = new Date(dateA);
-            }
-
-            if (!(dateB instanceof Date)) {
-                dateB = new Date(dateB);
-            }
-
-            switch (this.options.subDomain) {
-                case "x_min":
-                case "min":
-                    return dateA.getFullYear() === dateB.getFullYear() &&
-                        dateA.getMonth() === dateB.getMonth() &&
-                        dateA.getDate() === dateB.getDate() &&
-                        dateA.getHours() === dateB.getHours() &&
-                        dateA.getMinutes() === dateB.getMinutes();
-                case "x_hour":
-                case "hour":
-                    return dateA.getFullYear() === dateB.getFullYear() &&
-                        dateA.getMonth() === dateB.getMonth() &&
-                        dateA.getDate() === dateB.getDate() &&
-                        dateA.getHours() === dateB.getHours();
-                case "x_day":
-                case "day":
-                    return dateA.getFullYear() === dateB.getFullYear() &&
-                        dateA.getMonth() === dateB.getMonth() &&
-                        dateA.getDate() === dateB.getDate();
-                case "x_week":
-                case "week":
-                    return dateA.getFullYear() === dateB.getFullYear() &&
-                        this.getWeekNumber(dateA) === this.getWeekNumber(dateB);
-                case "x_month":
-                case "month":
-                    return dateA.getFullYear() === dateB.getFullYear() &&
-                        dateA.getMonth() === dateB.getMonth();
-                default:
-                    return false;
+        if (arguments.length === 2) {
+            if (this._maxDomainReached && !this.maxDomainIsReached(upperBound)) {
+                this.onMaxDomainReached(false);
             }
         }
+    }
 
+    checkIfMaxDomainIsReached(date, lowerBound) {
+        "use strict";
 
-        /**
-         * Returns wether or not dateA is less than or equal to dateB. This function is subdomain aware.
-         * Performs automatic conversion of values.
-         * @param dateA may be a number or a Date
-         * @param dateB may be a number or a Date
-         * @returns {boolean}
-         */
-        dateIsLessThan(dateA, dateB) {
-            "use strict";
-
-            if (!(dateA instanceof Date)) {
-                dateA = new Date(dateA);
-            }
-
-            if (!(dateB instanceof Date)) {
-                dateB = new Date(dateB);
-            }
-
-
-            function normalizedMillis(date, subdomain) {
-                switch (subdomain) {
-                    case "x_min":
-                    case "min":
-                        return new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes()).getTime();
-                    case "x_hour":
-                    case "hour":
-                        return new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours()).getTime();
-                    case "x_day":
-                    case "day":
-                        return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
-                    case "x_week":
-                    case "week":
-                    case "x_month":
-                    case "month":
-                        return new Date(date.getFullYear(), date.getMonth()).getTime();
-                    default:
-                        return date.getTime();
-                }
-            }
-
-            return normalizedMillis(dateA, this.options.subDomain) < normalizedMillis(dateB, this.options.subDomain);
+        if (this.maxDomainIsReached(date)) {
+            this.onMaxDomainReached(true);
         }
 
+        if (arguments.length === 2) {
+            if (this._minDomainReached && !this.minDomainIsReached(lowerBound)) {
+                this.onMinDomainReached(false);
+            }
+        }
+    }
 
-        // =========================================================================//
-        // DATE COMPUTATION															//
-        // =========================================================================//
+    // =========================================================================//
+    // FORMATTER																//
+    // =========================================================================//
 
-        /**
-         * Return the day of the year for the date
-         * @param	Date
-         * @return  int Day of the year [1,366]
-         */
-        getDayOfYear() {
-        	return d3.timeFormat("%j").apply(this, arguments);
+    formatNumber() {
+        return d3Format.format(",g").apply(this, arguments);
+    }
+
+    formatDate(d, format$$1) {
+        "use strict";
+
+        if (arguments.length < 2) {
+            format$$1 = "title";
         }
 
-        /**
-         * Return the week number of the year
-         * Monday as the first day of the week
-         * @return int	Week number [0-53]
-         */
-        getWeekNumber(d) {
-            "use strict";
-
-            var f = this.options.weekStartOnMonday === true ? d3.timeFormat("%W") : d3.timeFormat("%U");
+        if (typeof format$$1 === "function") {
+            return format$$1(d);
+        } else {
+            var f = d3TimeFormat.timeFormat(format$$1);
             return f(d);
         }
+    }
 
-        /**
-         * Return the week number, relative to its month
-         *
-         * @param  int|Date d Date or timestamp in milliseconds
-         * @return int Week number, relative to the month [0-5]
-         */
-        getMonthWeekNumber(d) {
-            "use strict";
+    getSubDomainTitle(d) {
+        "use strict";
 
-            if (typeof d === "number") {
-                d = new Date(d);
+        if (d.v === null && !this.options.considerMissingDataAsZero) {
+            return this.formatStringWithObject(this.options.subDomainTitleFormat.empty, {
+                date: this.formatDate(new Date(d.t), this.options.subDomainDateFormat)
+            });
+        } else {
+            var value = d.v;
+            // Consider null as 0
+            if (value === null && this.options.considerMissingDataAsZero) {
+                value = 0;
             }
 
-            var monthFirstWeekNumber = this.getWeekNumber(new Date(d.getFullYear(), d.getMonth()));
-            return this.getWeekNumber(d) - monthFirstWeekNumber - 1;
+            return this.formatStringWithObject(this.options.subDomainTitleFormat.filled, {
+                count: this.formatNumber(value),
+                name: this.options.itemName[(value !== 1 ? 1 : 0)],
+                connector: this._domainType[this.options.subDomain].format.connector,
+                date: this.formatDate(new Date(d.t), this.options.subDomainDateFormat)
+            });
+        }
+    }
+
+    // =========================================================================//
+    // DOMAIN NAVIGATION														//
+    // =========================================================================//
+
+    /**
+     * Shift the calendar one domain forward
+     *
+     * The new domain is loaded only if it's not beyond maxDate
+     *
+     * @param int n Number of domains to load
+     * @return bool True if the next domain was loaded, else false
+     */
+    loadNextDomain(n) {
+        "use strict";
+
+        if (this._maxDomainReached || n === 0) {
+            return false;
         }
 
-        /**
-         * Return the number of weeks in the dates' year
-         *
-         * @param  int|Date d Date or timestamp in milliseconds
-         * @return int Number of weeks in the date's year
-         */
-        getWeekNumberInYear(d) {
-            "use strict";
+        var bound = this.loadNewDomains(this.NAVIGATE_RIGHT, this.getDomain(this.getNextDomain(), n));
 
-            if (typeof d === "number") {
-                d = new Date(d);
+        this.afterLoadNextDomain(bound.end);
+        this.checkIfMaxDomainIsReached(this.getNextDomain().getTime(), bound.start);
+
+        return true;
+    }
+
+    /**
+     * Shift the calendar one domain backward
+     *
+     * The previous domain is loaded only if it's not beyond the minDate
+     *
+     * @param int n Number of domains to load
+     * @return bool True if the previous domain was loaded, else false
+     */
+    loadPreviousDomain(n) {
+        "use strict";
+
+        if (this._minDomainReached || n === 0) {
+            return false;
+        }
+
+        var bound = this.loadNewDomains(this.NAVIGATE_LEFT, this.getDomain(this.getDomainKeys()[0], -n).reverse());
+
+        this.afterLoadPreviousDomain(bound.start);
+        this.checkIfMinDomainIsReached(bound.start, bound.end);
+
+        return true;
+    }
+
+    loadNewDomains(direction, newDomains) {
+        "use strict";
+
+        var parent = this;
+        var backward = direction === this.NAVIGATE_LEFT;
+        var i = -1;
+        var total = newDomains.length;
+        var domains = this.getDomainKeys();
+
+        function buildSubDomain(d) {
+            return { t: parent._domainType[parent.options.subDomain].extractUnit(d), v: null };
+        }
+
+        // Remove out of bound domains from list of new domains to prepend
+        while (++i < total) {
+            if (backward && this.minDomainIsReached(newDomains[i])) {
+                newDomains = newDomains.slice(0, i + 1);
+                break;
+            }
+            if (!backward && this.maxDomainIsReached(newDomains[i])) {
+                newDomains = newDomains.slice(0, i);
+                break;
             }
         }
 
-        /**
-         * Return the number of days in the date's month
-         *
-         * @param  int|Date d Date or timestamp in milliseconds
-         * @return int Number of days in the date's month
-         */
-        getDayCountInMonth(d) {
-            "use strict";
+        newDomains = newDomains.slice(-this.options.range);
 
-            return this.getEndOfMonth(d).getDate();
+        for (i = 0, total = newDomains.length; i < total; i++) {
+            this._domains.set(
+                newDomains[i].getTime(),
+                this.getSubDomain(newDomains[i]).map(buildSubDomain)
+            );
+
+            this._domains.remove(backward ? domains.pop() : domains.shift());
         }
 
-        /**
-         * Return the number of days in the date's year
-         *
-         * @param  int|Date d Date or timestamp in milliseconds
-         * @return int Number of days in the date's year
-         */
-        getDayCountInYear(d) {
-            "use strict";
+        domains = this.getDomainKeys();
 
-            if (typeof d === "number") {
-                d = new Date(d);
-            }
-            return (new Date(d.getFullYear(), 1, 29).getMonth() === 1) ? 366 : 365;
+        if (backward) {
+            newDomains = newDomains.reverse();
         }
 
-        /**
-         * Get the weekday from a date
-         *
-         * Return the week day number (0-6) of a date,
-         * depending on whether the week start on monday or sunday
-         *
-         * @param  Date d
-         * @return int The week day number (0-6)
-         */
-        getWeekDay(d) {
-            "use strict";
+        this.paint(direction);
 
-            if (this.options.weekStartOnMonday === false) {
-                return d.getDay();
+        this.getDatas(
+            this.options.data,
+            newDomains[0],
+            this.getSubDomain(newDomains[newDomains.length - 1]).pop(),
+            function() {
+                parent.fill(parent.lastInsertedSvg);
             }
-            return d.getDay() === 0 ? 6 : (d.getDay() - 1);
+        );
+
+        return {
+            start: newDomains[backward ? 0 : 1],
+            end: domains[domains.length - 1]
+        };
+    }
+
+    /**
+     * Return whether a date is inside the scope determined by maxDate
+     *
+     * @param int datetimestamp The timestamp in ms to test
+     * @return bool True if the specified date correspond to the calendar upper bound
+     */
+    maxDomainIsReached(datetimestamp) {
+        "use strict";
+
+        return (this.options.maxDate !== null && (this.options.maxDate.getTime() < datetimestamp));
+    }
+
+    /**
+     * Return whether a date is inside the scope determined by minDate
+     *
+     * @param int datetimestamp The timestamp in ms to test
+     * @return bool True if the specified date correspond to the calendar lower bound
+     */
+    minDomainIsReached(datetimestamp) {
+        "use strict";
+
+        return (this.options.minDate !== null && (this.options.minDate.getTime() >= datetimestamp));
+    }
+
+    /**
+     * Return the list of the calendar's domain timestamp
+     *
+     * @return Array a sorted array of timestamp
+     */
+    getDomainKeys() {
+        "use strict";
+
+        return this._domains.keys()
+            .map(function(d) {
+                return parseInt(d, 10);
+            })
+            .sort(function(a, b) {
+                return a - b;
+            });
+    }
+
+    // =========================================================================//
+    // POSITIONNING																//
+    // =========================================================================//
+
+    positionSubDomainX(d) {
+        "use strict";
+
+        var index = this._domainType[this.options.subDomain].position.x(new Date(d));
+        return index * this.options.cellSize + index * this.options.cellPadding;
+    }
+
+    positionSubDomainY(d) {
+        "use strict";
+
+        var index = this._domainType[this.options.subDomain].position.y(new Date(d));
+        return index * this.options.cellSize + index * this.options.cellPadding;
+    }
+
+    getSubDomainColumnNumber(d) {
+        "use strict";
+
+        if (this.options.rowLimit > 0) {
+            var i = this._domainType[this.options.subDomain].maxItemNumber;
+            if (typeof i === "function") {
+                i = i(d);
+            }
+            return Math.ceil(i / this.options.rowLimit);
         }
 
-        /**
-         * Get the last day of the month
-         * @param  Date|int	d	Date or timestamp in milliseconds
-         * @return Date			Last day of the month
-         */
-        getEndOfMonth(d) {
-            "use strict";
+        var j = this._domainType[this.options.subDomain].defaultColumnNumber;
+        if (typeof j === "function") {
+            j = j(d);
 
-            if (typeof d === "number") {
-                d = new Date(d);
+        }
+        return this.options.colLimit || j;
+    }
+
+    getSubDomainRowNumber(d) {
+        "use strict";
+
+        if (this.options.colLimit > 0) {
+            var i = this._domainType[this.options.subDomain].maxItemNumber;
+            if (typeof i === "function") {
+                i = i(d);
             }
-            return new Date(d.getFullYear(), d.getMonth() + 1, 0);
+            return Math.ceil(i / this.options.colLimit);
         }
 
-        /**
-         *
-         * @param  Date date
-         * @param  int count
-         * @param  string step
-         * @return Date
-         */
-        jumpDate(date, count, step) {
-            "use strict";
+        var j = this._domainType[this.options.subDomain].defaultRowNumber;
+        if (typeof j === "function") {
+            j = j(d);
 
-            var d = new Date(date);
-            switch (step) {
-                case "hour":
-                    d.setHours(d.getHours() + count);
-                    break;
-                case "day":
-                    d.setHours(d.getHours() + count * 24);
-                    break;
-                case "week":
-                    d.setHours(d.getHours() + count * 24 * 7);
-                    break;
-                case "month":
-                    d.setMonth(d.getMonth() + count);
-                    break;
-                case "year":
-                    d.setFullYear(d.getFullYear() + count);
-            }
-
-            return new Date(d);
         }
+        return this.options.rowLimit || j;
+    }
 
-        // =========================================================================//
-        // DOMAIN COMPUTATION														//
-        // =========================================================================//
+    /**
+     * Return a classname if the specified date should be highlighted
+     *
+     * @param  timestamp date Date of the current subDomain
+     * @return String the highlight class
+     */
+    getHighlightClassName(d) {
+        "use strict";
 
-        /**
-         * Return all the minutes between 2 dates
-         *
-         * @param  Date	d	date	A date
-         * @param  int|date	range	Number of minutes in the range, or a stop date
-         * @return array	An array of minutes
-         */
-        getMinuteDomain(d, range) {
-            "use strict";
+        d = new Date(d);
 
-            var start = new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours());
-            var stop = null;
-            if (range instanceof Date) {
-                stop = new Date(range.getFullYear(), range.getMonth(), range.getDate(), range.getHours());
-            } else {
-                stop = new Date(+start + range * 1000 * 60);
-            }
-            return d3.timeMinutes(Math.min(start, stop), Math.max(start, stop));
-        }
-
-        /**
-         * Return all the hours between 2 dates
-         *
-         * @param  Date	d	A date
-         * @param  int|date	range	Number of hours in the range, or a stop date
-         * @return array	An array of hours
-         */
-        getHourDomain(d, range) {
-            "use strict";
-
-            var start = new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours());
-            var stop = null;
-            if (range instanceof Date) {
-                stop = new Date(range.getFullYear(), range.getMonth(), range.getDate(), range.getHours());
-            } else {
-                stop = new Date(start);
-                stop.setHours(stop.getHours() + range);
-            }
-
-            var domains = d3.timeHours(Math.min(start, stop), Math.max(start, stop));
-
-            // Passing from DST to standard time
-            // If there are 25 hours, let's compress the duplicate hours
-            var i = 0;
-            var total = domains.length;
-            for (i = 0; i < total; i++) {
-                if (i > 0 && (domains[i].getHours() === domains[i - 1].getHours())) {
-                    this.DSTDomain.push(domains[i].getTime());
-                    domains.splice(i, 1);
-                    break;
+        if (this.options.highlight.length > 0) {
+            for (var i in this.options.highlight) {
+                if (this.dateIsEqual(this.options.highlight[i], d)) {
+                    return this.isNow(this.options.highlight[i]) ? " highlight-now" : " highlight";
                 }
             }
+        }
+        return "";
+    }
 
-            // d3.time.hours is returning more hours than needed when changing
-            // from DST to standard time, because there is really 2 hours between
-            // 1am and 2am!
-            if (typeof range === "number" && domains.length > Math.abs(range)) {
-                domains.splice(domains.length - 1, 1);
-            }
+    /**
+     * Return whether the specified date is now,
+     * according to the type of subdomain
+     *
+     * @param  Date d The date to compare
+     * @return bool True if the date correspond to a subdomain cell
+     */
+    isNow(d) {
+        "use strict";
 
-            return domains;
+        return this.dateIsEqual(d, new Date());
+    }
+
+    /**
+     * Return whether 2 dates are equals
+     * This function is subdomain-aware,
+     * and dates comparison are dependent of the subdomain
+     *
+     * @param  Date dateA First date to compare
+     * @param  Date dateB Secon date to compare
+     * @return bool true if the 2 dates are equals
+     */
+    /* jshint maxcomplexity: false */
+    dateIsEqual(dateA, dateB) {
+        "use strict";
+
+        if (!(dateA instanceof Date)) {
+            dateA = new Date(dateA);
         }
 
-        /**
-         * Return all the days between 2 dates
-         *
-         * @param  Date		d		A date
-         * @param  int|date	range	Number of days in the range, or a stop date
-         * @return array	An array of weeks
-         */
-        getDayDomain(d, range) {
-            "use strict";
-
-            var start = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-            var stop = null;
-            if (range instanceof Date) {
-                stop = new Date(range.getFullYear(), range.getMonth(), range.getDate());
-            } else {
-                stop = new Date(start);
-                stop = new Date(stop.setDate(stop.getDate() + parseInt(range, 10)));
-            }
-
-            return d3.timeDays(Math.min(start, stop), Math.max(start, stop));
+        if (!(dateB instanceof Date)) {
+            dateB = new Date(dateB);
         }
 
-        /**
-         * Return all the weeks between 2 dates
-         *
-         * @param  Date	d	A date
-         * @param  int|date	range	Number of minutes in the range, or a stop date
-         * @return array	An array of weeks
-         */
-        getWeekDomain(d, range) {
-            "use strict";
+        switch (this.options.subDomain) {
+            case "x_min":
+            case "min":
+                return dateA.getFullYear() === dateB.getFullYear() &&
+                    dateA.getMonth() === dateB.getMonth() &&
+                    dateA.getDate() === dateB.getDate() &&
+                    dateA.getHours() === dateB.getHours() &&
+                    dateA.getMinutes() === dateB.getMinutes();
+            case "x_hour":
+            case "hour":
+                return dateA.getFullYear() === dateB.getFullYear() &&
+                    dateA.getMonth() === dateB.getMonth() &&
+                    dateA.getDate() === dateB.getDate() &&
+                    dateA.getHours() === dateB.getHours();
+            case "x_day":
+            case "day":
+                return dateA.getFullYear() === dateB.getFullYear() &&
+                    dateA.getMonth() === dateB.getMonth() &&
+                    dateA.getDate() === dateB.getDate();
+            case "x_week":
+            case "week":
+                return dateA.getFullYear() === dateB.getFullYear() &&
+                    this.getWeekNumber(dateA) === this.getWeekNumber(dateB);
+            case "x_month":
+            case "month":
+                return dateA.getFullYear() === dateB.getFullYear() &&
+                    dateA.getMonth() === dateB.getMonth();
+            default:
+                return false;
+        }
+    }
 
-            var weekStart;
 
-            if (this.options.weekStartOnMonday === false) {
-                weekStart = new Date(d.getFullYear(), d.getMonth(), d.getDate() - d.getDay());
-            } else {
-                if (d.getDay() === 1) {
-                    weekStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-                } else if (d.getDay() === 0) {
-                    weekStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-                    weekStart.setDate(weekStart.getDate() - 6);
-                } else {
-                    weekStart = new Date(d.getFullYear(), d.getMonth(), d.getDate() - d.getDay() + 1);
-                }
-            }
+    /**
+     * Returns wether or not dateA is less than or equal to dateB. This function is subdomain aware.
+     * Performs automatic conversion of values.
+     * @param dateA may be a number or a Date
+     * @param dateB may be a number or a Date
+     * @returns {boolean}
+     */
+    dateIsLessThan(dateA, dateB) {
+        "use strict";
 
-            var endDate = new Date(weekStart);
-
-            var stop = range;
-            if (typeof range !== "object") {
-                stop = new Date(endDate.setDate(endDate.getDate() + range * 7));
-            }
-
-            return (this.options.weekStartOnMonday === true) ?
-                d3.timeMondays(Math.min(weekStart, stop), Math.max(weekStart, stop)) :
-                d3.timeSundays(Math.min(weekStart, stop), Math.max(weekStart, stop));
+        if (!(dateA instanceof Date)) {
+            dateA = new Date(dateA);
         }
 
-        /**
-         * Return all the months between 2 dates
-         *
-         * @param  Date		d		A date
-         * @param  int|date	range	Number of months in the range, or a stop date
-         * @return array	An array of months
-         */
-        getMonthDomain(d, range) {
-            "use strict";
-
-            var start = new Date(d.getFullYear(), d.getMonth());
-            var stop = null;
-            if (range instanceof Date) {
-                stop = new Date(range.getFullYear(), range.getMonth());
-            } else {
-                stop = new Date(start);
-                stop = stop.setMonth(stop.getMonth() + range);
-            }
-
-            return d3.timeMonths(Math.min(start, stop), Math.max(start, stop));
+        if (!(dateB instanceof Date)) {
+            dateB = new Date(dateB);
         }
 
-        /**
-         * Return all the years between 2 dates
-         *
-         * @param  Date	d	date	A date
-         * @param  int|date	range	Number of minutes in the range, or a stop date
-         * @return array	An array of hours
-         */
-        getYearDomain(d, range) {
-            "use strict";
 
-            var start = new Date(d.getFullYear(), 0);
-            var stop = null;
-            if (range instanceof Date) {
-                stop = new Date(range.getFullYear(), 0);
-            } else {
-                stop = new Date(d.getFullYear() + range, 0);
-            }
-
-            return d3.timeYears(Math.min(start, stop), Math.max(start, stop));
-        }
-
-        /**
-         * Get an array of domain start dates
-         *
-         * @param  int|Date date A random date included in the wanted domain
-         * @param  int|Date range Number of dates to get, or a stop date
-         * @return Array of dates
-         */
-        getDomain(date, range) {
-            "use strict";
-
-            if (typeof date === "number") {
-                date = new Date(date);
-            }
-
-            if (arguments.length < 2) {
-                range = this.options.range;
-            }
-
-            switch (this.options.domain) {
-                case "hour":
-                    var domains = this.getHourDomain(date, range);
-
-                    // Case where an hour is missing, when passing from standard time to DST
-                    // Missing hour is perfectly acceptabl in subDomain, but not in domains
-                    if (typeof range === "number" && domains.length < range) {
-                        if (range > 0) {
-                            domains.push(this.getHourDomain(domains[domains.length - 1], 2)[1]);
-                        } else {
-                            domains.shift(this.getHourDomain(domains[0], -2)[0]);
-                        }
-                    }
-                    return domains;
-                case "day":
-                    return this.getDayDomain(date, range);
-                case "week":
-                    return this.getWeekDomain(date, range);
-                case "month":
-                    return this.getMonthDomain(date, range);
-                case "year":
-                    return this.getYearDomain(date, range);
-            }
-        }
-
-        /* jshint maxcomplexity: false */
-        getSubDomain(date) {
-            "use strict";
-
-            if (typeof date === "number") {
-                date = new Date(date);
-            }
-
-            var parent = this;
-
-            /**
-             * @return int
-             */
-            var computeDaySubDomainSize = function(date, domain) {
-                switch (domain) {
-                    case "year":
-                        return parent.getDayCountInYear(date);
-                    case "month":
-                        return parent.getDayCountInMonth(date);
-                    case "week":
-                        return 7;
-                }
-            };
-
-            /**
-             * @return int
-             */
-            var computeMinSubDomainSize = function(date, domain) {
-                switch (domain) {
-                    case "hour":
-                        return 60;
-                    case "day":
-                        return 60 * 24;
-                    case "week":
-                        return 60 * 24 * 7;
-                }
-            };
-
-            /**
-             * @return int
-             */
-            var computeHourSubDomainSize = function(date, domain) {
-                switch (domain) {
-                    case "day":
-                        return 24;
-                    case "week":
-                        return 168;
-                    case "month":
-                        return parent.getDayCountInMonth(date) * 24;
-                }
-            };
-
-            /**
-             * @return int
-             */
-            var computeWeekSubDomainSize = function(date, domain) {
-                if (domain === "month") {
-                    var endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-                    var endWeekNb = parent.getWeekNumber(endOfMonth);
-                    var startWeekNb = parent.getWeekNumber(new Date(date.getFullYear(), date.getMonth()));
-
-                    if (startWeekNb > endWeekNb) {
-                        startWeekNb = 0;
-                        endWeekNb++;
-                    }
-
-                    return endWeekNb - startWeekNb + 1;
-                } else if (domain === "year") {
-                    return parent.getWeekNumber(new Date(date.getFullYear(), 11, 31));
-                }
-            };
-
-            switch (this.options.subDomain) {
+        function normalizedMillis(date, subdomain) {
+            switch (subdomain) {
                 case "x_min":
                 case "min":
-                    return this.getMinuteDomain(date, computeMinSubDomainSize(date, this.options.domain));
+                    return new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes()).getTime();
                 case "x_hour":
                 case "hour":
-                    return this.getHourDomain(date, computeHourSubDomainSize(date, this.options.domain));
+                    return new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours()).getTime();
                 case "x_day":
                 case "day":
-                    return this.getDayDomain(date, computeDaySubDomainSize(date, this.options.domain));
+                    return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
                 case "x_week":
                 case "week":
-                    return this.getWeekDomain(date, computeWeekSubDomainSize(date, this.options.domain));
                 case "x_month":
                 case "month":
-                    return this.getMonthDomain(date, 12);
-            }
-        }
-
-        /**
-         * Get the n-th next domain after the calendar newest (rightmost) domain
-         * @param  int n
-         * @return Date The start date of the wanted domain
-         */
-        getNextDomain(n) {
-            "use strict";
-
-            if (arguments.length === 0) {
-                n = 1;
-            }
-            return this.getDomain(this.jumpDate(this.getDomainKeys().pop(), n, this.options.domain), 1)[0];
-        }
-
-        /**
-         * Get the n-th domain before the calendar oldest (leftmost) domain
-         * @param  int n
-         * @return Date The start date of the wanted domain
-         */
-        getPreviousDomain(n) {
-            "use strict";
-
-            if (arguments.length === 0) {
-                n = 1;
-            }
-            return this.getDomain(this.jumpDate(this.getDomainKeys().shift(), -n, this.options.domain), 1)[0];
-        }
-
-
-        // =========================================================================//
-        // DATAS																	//
-        // =========================================================================//
-
-        /**
-         * Fetch and interpret data from the datasource
-         *
-         * @param string|object source
-         * @param Date startDate
-         * @param Date endDate
-         * @param function callback
-         * @param function|boolean afterLoad function used to convert the data into a json object. Use true to use the afterLoad callback
-         * @param updateMode
-         *
-         * @return mixed
-         * - True if there are no data to load
-         * - False if data are loaded asynchronously
-         */
-        getDatas(source, startDate, endDate, callback, afterLoad, updateMode) {
-            "use strict";
-
-            var self = this;
-            if (arguments.length < 5) {
-                afterLoad = true;
-            }
-            if (arguments.length < 6) {
-                updateMode = this.APPEND_ON_UPDATE;
-            }
-            var _callback = function(data) {
-                if (afterLoad !== false) {
-                    if (typeof afterLoad === "function") {
-                        data = afterLoad(data);
-                    } else if (typeof(self.options.afterLoadData) === "function") {
-                        data = self.options.afterLoadData(data);
-                    } else {
-                        console.log("Provided callback for afterLoadData is not a function.");
-                    }
-                } else if (self.options.dataType === "csv" || self.options.dataType === "tsv") {
-                    data = this.interpretCSV(data);
-                }
-                self.parseDatas(data, updateMode, startDate, endDate);
-                if (typeof callback === "function") {
-                    callback();
-                }
-            };
-
-            switch (typeof source) {
-                case "string":
-                    if (source === "") {
-                        _callback({});
-                        return true;
-                    } else {
-                        var url = this.parseURI(source, startDate, endDate);
-                        var requestType = "GET";
-                        if (self.options.dataPostPayload !== null) {
-                            requestType = "POST";
-                        }
-                        var payload = null;
-                        if (self.options.dataPostPayload !== null) {
-                            payload = this.parseURI(self.options.dataPostPayload, startDate, endDate);
-                        }
-
-                        switch (this.options.dataType) {
-                            case "json":
-                                d3.json(url, _callback).send(requestType, payload);
-                                break;
-                            case "csv":
-                                d3.csv(url, _callback).send(requestType, payload);
-                                break;
-                            case "tsv":
-                                d3.tsv(url, _callback).send(requestType, payload);
-                                break;
-                            case "txt":
-                                d3.text(url, _callback).send(requestType, payload);
-                                break;
-                        }
-                    }
-                    return false;
-                case "object":
-                    if (source === Object(source)) {
-                        _callback(source);
-                        return false;
-                    }
-                    /* falls through */
+                    return new Date(date.getFullYear(), date.getMonth()).getTime();
                 default:
+                    return date.getTime();
+            }
+        }
+
+        return normalizedMillis(dateA, this.options.subDomain) < normalizedMillis(dateB, this.options.subDomain);
+    }
+
+
+    // =========================================================================//
+    // DATE COMPUTATION															//
+    // =========================================================================//
+
+    /**
+     * Return the day of the year for the date
+     * @param	Date
+     * @return  int Day of the year [1,366]
+     */
+    getDayOfYear() {
+        return d3TimeFormat.timeFormat("%j").apply(this, arguments);
+    }
+
+    /**
+     * Return the week number of the year
+     * Monday as the first day of the week
+     * @return int	Week number [0-53]
+     */
+    getWeekNumber(d) {
+        "use strict";
+
+        var f = this.options.weekStartOnMonday === true ? d3TimeFormat.timeFormat("%W") : d3TimeFormat.timeFormat("%U");
+        return f(d);
+    }
+
+    /**
+     * Return the week number, relative to its month
+     *
+     * @param  int|Date d Date or timestamp in milliseconds
+     * @return int Week number, relative to the month [0-5]
+     */
+    getMonthWeekNumber(d) {
+        "use strict";
+
+        if (typeof d === "number") {
+            d = new Date(d);
+        }
+
+        var monthFirstWeekNumber = this.getWeekNumber(new Date(d.getFullYear(), d.getMonth()));
+        return this.getWeekNumber(d) - monthFirstWeekNumber - 1;
+    }
+
+    /**
+     * Return the number of weeks in the dates' year
+     *
+     * @param  int|Date d Date or timestamp in milliseconds
+     * @return int Number of weeks in the date's year
+     */
+    getWeekNumberInYear(d) {
+        "use strict";
+
+        if (typeof d === "number") {
+            d = new Date(d);
+        }
+    }
+
+    /**
+     * Return the number of days in the date's month
+     *
+     * @param  int|Date d Date or timestamp in milliseconds
+     * @return int Number of days in the date's month
+     */
+    getDayCountInMonth(d) {
+        "use strict";
+
+        return this.getEndOfMonth(d).getDate();
+    }
+
+    /**
+     * Return the number of days in the date's year
+     *
+     * @param  int|Date d Date or timestamp in milliseconds
+     * @return int Number of days in the date's year
+     */
+    getDayCountInYear(d) {
+        "use strict";
+
+        if (typeof d === "number") {
+            d = new Date(d);
+        }
+        return (new Date(d.getFullYear(), 1, 29).getMonth() === 1) ? 366 : 365;
+    }
+
+    /**
+     * Get the weekday from a date
+     *
+     * Return the week day number (0-6) of a date,
+     * depending on whether the week start on monday or sunday
+     *
+     * @param  Date d
+     * @return int The week day number (0-6)
+     */
+    getWeekDay(d) {
+        "use strict";
+
+        if (this.options.weekStartOnMonday === false) {
+            return d.getDay();
+        }
+        return d.getDay() === 0 ? 6 : (d.getDay() - 1);
+    }
+
+    /**
+     * Get the last day of the month
+     * @param  Date|int	d	Date or timestamp in milliseconds
+     * @return Date			Last day of the month
+     */
+    getEndOfMonth(d) {
+        "use strict";
+
+        if (typeof d === "number") {
+            d = new Date(d);
+        }
+        return new Date(d.getFullYear(), d.getMonth() + 1, 0);
+    }
+
+    /**
+     *
+     * @param  Date date
+     * @param  int count
+     * @param  string step
+     * @return Date
+     */
+    jumpDate(date, count, step) {
+        "use strict";
+
+        var d = new Date(date);
+        switch (step) {
+            case "hour":
+                d.setHours(d.getHours() + count);
+                break;
+            case "day":
+                d.setHours(d.getHours() + count * 24);
+                break;
+            case "week":
+                d.setHours(d.getHours() + count * 24 * 7);
+                break;
+            case "month":
+                d.setMonth(d.getMonth() + count);
+                break;
+            case "year":
+                d.setFullYear(d.getFullYear() + count);
+        }
+
+        return new Date(d);
+    }
+
+    // =========================================================================//
+    // DOMAIN COMPUTATION														//
+    // =========================================================================//
+
+    /**
+     * Return all the minutes between 2 dates
+     *
+     * @param  Date	d	date	A date
+     * @param  int|date	range	Number of minutes in the range, or a stop date
+     * @return array	An array of minutes
+     */
+    getMinuteDomain(d, range) {
+        "use strict";
+
+        var start = new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours());
+        var stop = null;
+        if (range instanceof Date) {
+            stop = new Date(range.getFullYear(), range.getMonth(), range.getDate(), range.getHours());
+        } else {
+            stop = new Date(+start + range * 1000 * 60);
+        }
+        return d3Time.timeMinutes(Math.min(start, stop), Math.max(start, stop));
+    }
+
+    /**
+     * Return all the hours between 2 dates
+     *
+     * @param  Date	d	A date
+     * @param  int|date	range	Number of hours in the range, or a stop date
+     * @return array	An array of hours
+     */
+    getHourDomain(d, range) {
+        "use strict";
+
+        var start = new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours());
+        var stop = null;
+        if (range instanceof Date) {
+            stop = new Date(range.getFullYear(), range.getMonth(), range.getDate(), range.getHours());
+        } else {
+            stop = new Date(start);
+            stop.setHours(stop.getHours() + range);
+        }
+
+        var domains = d3Time.timeHours(Math.min(start, stop), Math.max(start, stop));
+
+        // Passing from DST to standard time
+        // If there are 25 hours, let's compress the duplicate hours
+        var i = 0;
+        var total = domains.length;
+        for (i = 0; i < total; i++) {
+            if (i > 0 && (domains[i].getHours() === domains[i - 1].getHours())) {
+                this.DSTDomain.push(domains[i].getTime());
+                domains.splice(i, 1);
+                break;
+            }
+        }
+
+        // d3.time.hours is returning more hours than needed when changing
+        // from DST to standard time, because there is really 2 hours between
+        // 1am and 2am!
+        if (typeof range === "number" && domains.length > Math.abs(range)) {
+            domains.splice(domains.length - 1, 1);
+        }
+
+        return domains;
+    }
+
+    /**
+     * Return all the days between 2 dates
+     *
+     * @param  Date		d		A date
+     * @param  int|date	range	Number of days in the range, or a stop date
+     * @return array	An array of weeks
+     */
+    getDayDomain(d, range) {
+        "use strict";
+
+        var start = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        var stop = null;
+        if (range instanceof Date) {
+            stop = new Date(range.getFullYear(), range.getMonth(), range.getDate());
+        } else {
+            stop = new Date(start);
+            stop = new Date(stop.setDate(stop.getDate() + parseInt(range, 10)));
+        }
+
+        return d3Time.timeDays(Math.min(start, stop), Math.max(start, stop));
+    }
+
+    /**
+     * Return all the weeks between 2 dates
+     *
+     * @param  Date	d	A date
+     * @param  int|date	range	Number of minutes in the range, or a stop date
+     * @return array	An array of weeks
+     */
+    getWeekDomain(d, range) {
+        "use strict";
+
+        var weekStart;
+
+        if (this.options.weekStartOnMonday === false) {
+            weekStart = new Date(d.getFullYear(), d.getMonth(), d.getDate() - d.getDay());
+        } else {
+            if (d.getDay() === 1) {
+                weekStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+            } else if (d.getDay() === 0) {
+                weekStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+                weekStart.setDate(weekStart.getDate() - 6);
+            } else {
+                weekStart = new Date(d.getFullYear(), d.getMonth(), d.getDate() - d.getDay() + 1);
+            }
+        }
+
+        var endDate = new Date(weekStart);
+
+        var stop = range;
+        if (typeof range !== "object") {
+            stop = new Date(endDate.setDate(endDate.getDate() + range * 7));
+        }
+
+        return (this.options.weekStartOnMonday === true) ?
+            d3Time.timeMondays(Math.min(weekStart, stop), Math.max(weekStart, stop)) :
+            d3Time.timeSundays(Math.min(weekStart, stop), Math.max(weekStart, stop));
+    }
+
+    /**
+     * Return all the months between 2 dates
+     *
+     * @param  Date		d		A date
+     * @param  int|date	range	Number of months in the range, or a stop date
+     * @return array	An array of months
+     */
+    getMonthDomain(d, range) {
+        "use strict";
+
+        var start = new Date(d.getFullYear(), d.getMonth());
+        var stop = null;
+        if (range instanceof Date) {
+            stop = new Date(range.getFullYear(), range.getMonth());
+        } else {
+            stop = new Date(start);
+            stop = stop.setMonth(stop.getMonth() + range);
+        }
+
+        return d3Time.timeMonths(Math.min(start, stop), Math.max(start, stop));
+    }
+
+    /**
+     * Return all the years between 2 dates
+     *
+     * @param  Date	d	date	A date
+     * @param  int|date	range	Number of minutes in the range, or a stop date
+     * @return array	An array of hours
+     */
+    getYearDomain(d, range) {
+        "use strict";
+
+        var start = new Date(d.getFullYear(), 0);
+        var stop = null;
+        if (range instanceof Date) {
+            stop = new Date(range.getFullYear(), 0);
+        } else {
+            stop = new Date(d.getFullYear() + range, 0);
+        }
+
+        return d3Time.timeYears(Math.min(start, stop), Math.max(start, stop));
+    }
+
+    /**
+     * Get an array of domain start dates
+     *
+     * @param  int|Date date A random date included in the wanted domain
+     * @param  int|Date range Number of dates to get, or a stop date
+     * @return Array of dates
+     */
+    getDomain(date, range) {
+        "use strict";
+
+        if (typeof date === "number") {
+            date = new Date(date);
+        }
+
+        if (arguments.length < 2) {
+            range = this.options.range;
+        }
+
+        switch (this.options.domain) {
+            case "hour":
+                var domains = this.getHourDomain(date, range);
+
+                // Case where an hour is missing, when passing from standard time to DST
+                // Missing hour is perfectly acceptabl in subDomain, but not in domains
+                if (typeof range === "number" && domains.length < range) {
+                    if (range > 0) {
+                        domains.push(this.getHourDomain(domains[domains.length - 1], 2)[1]);
+                    } else {
+                        domains.shift(this.getHourDomain(domains[0], -2)[0]);
+                    }
+                }
+                return domains;
+            case "day":
+                return this.getDayDomain(date, range);
+            case "week":
+                return this.getWeekDomain(date, range);
+            case "month":
+                return this.getMonthDomain(date, range);
+            case "year":
+                return this.getYearDomain(date, range);
+        }
+    }
+
+    /* jshint maxcomplexity: false */
+    getSubDomain(date) {
+        "use strict";
+
+        if (typeof date === "number") {
+            date = new Date(date);
+        }
+
+        var parent = this;
+
+        /**
+         * @return int
+         */
+        var computeDaySubDomainSize = function(date, domain) {
+            switch (domain) {
+                case "year":
+                    return parent.getDayCountInYear(date);
+                case "month":
+                    return parent.getDayCountInMonth(date);
+                case "week":
+                    return 7;
+            }
+        };
+
+        /**
+         * @return int
+         */
+        var computeMinSubDomainSize = function(date, domain) {
+            switch (domain) {
+                case "hour":
+                    return 60;
+                case "day":
+                    return 60 * 24;
+                case "week":
+                    return 60 * 24 * 7;
+            }
+        };
+
+        /**
+         * @return int
+         */
+        var computeHourSubDomainSize = function(date, domain) {
+            switch (domain) {
+                case "day":
+                    return 24;
+                case "week":
+                    return 168;
+                case "month":
+                    return parent.getDayCountInMonth(date) * 24;
+            }
+        };
+
+        /**
+         * @return int
+         */
+        var computeWeekSubDomainSize = function(date, domain) {
+            if (domain === "month") {
+                var endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+                var endWeekNb = parent.getWeekNumber(endOfMonth);
+                var startWeekNb = parent.getWeekNumber(new Date(date.getFullYear(), date.getMonth()));
+
+                if (startWeekNb > endWeekNb) {
+                    startWeekNb = 0;
+                    endWeekNb++;
+                }
+
+                return endWeekNb - startWeekNb + 1;
+            } else if (domain === "year") {
+                return parent.getWeekNumber(new Date(date.getFullYear(), 11, 31));
+            }
+        };
+
+        switch (this.options.subDomain) {
+            case "x_min":
+            case "min":
+                return this.getMinuteDomain(date, computeMinSubDomainSize(date, this.options.domain));
+            case "x_hour":
+            case "hour":
+                return this.getHourDomain(date, computeHourSubDomainSize(date, this.options.domain));
+            case "x_day":
+            case "day":
+                return this.getDayDomain(date, computeDaySubDomainSize(date, this.options.domain));
+            case "x_week":
+            case "week":
+                return this.getWeekDomain(date, computeWeekSubDomainSize(date, this.options.domain));
+            case "x_month":
+            case "month":
+                return this.getMonthDomain(date, 12);
+        }
+    }
+
+    /**
+     * Get the n-th next domain after the calendar newest (rightmost) domain
+     * @param  int n
+     * @return Date The start date of the wanted domain
+     */
+    getNextDomain(n) {
+        "use strict";
+
+        if (arguments.length === 0) {
+            n = 1;
+        }
+        return this.getDomain(this.jumpDate(this.getDomainKeys().pop(), n, this.options.domain), 1)[0];
+    }
+
+    /**
+     * Get the n-th domain before the calendar oldest (leftmost) domain
+     * @param  int n
+     * @return Date The start date of the wanted domain
+     */
+    getPreviousDomain(n) {
+        "use strict";
+
+        if (arguments.length === 0) {
+            n = 1;
+        }
+        return this.getDomain(this.jumpDate(this.getDomainKeys().shift(), -n, this.options.domain), 1)[0];
+    }
+
+
+    // =========================================================================//
+    // DATAS																	//
+    // =========================================================================//
+
+    /**
+     * Fetch and interpret data from the datasource
+     *
+     * @param string|object source
+     * @param Date startDate
+     * @param Date endDate
+     * @param function callback
+     * @param function|boolean afterLoad function used to convert the data into a json object. Use true to use the afterLoad callback
+     * @param updateMode
+     *
+     * @return mixed
+     * - True if there are no data to load
+     * - False if data are loaded asynchronously
+     */
+    getDatas(source, startDate, endDate, callback, afterLoad, updateMode) {
+        "use strict";
+
+        var self = this;
+        if (arguments.length < 5) {
+            afterLoad = true;
+        }
+        if (arguments.length < 6) {
+            updateMode = this.APPEND_ON_UPDATE;
+        }
+        var _callback = function(data) {
+            if (afterLoad !== false) {
+                if (typeof afterLoad === "function") {
+                    data = afterLoad(data);
+                } else if (typeof(self.options.afterLoadData) === "function") {
+                    data = self.options.afterLoadData(data);
+                } else {
+                    console.log("Provided callback for afterLoadData is not a function.");
+                }
+            } else if (self.options.dataType === "csv" || self.options.dataType === "tsv") {
+                data = this.interpretCSV(data);
+            }
+            self.parseDatas(data, updateMode, startDate, endDate);
+            if (typeof callback === "function") {
+                callback();
+            }
+        };
+
+        switch (typeof source) {
+            case "string":
+                if (source === "") {
                     _callback({});
                     return true;
-            }
-        }
-
-        /**
-         * Populate the calendar internal data
-         *
-         * @param object data
-         * @param constant updateMode
-         * @param Date startDate
-         * @param Date endDate
-         *
-         * @return void
-         */
-        parseDatas(data, updateMode, startDate, endDate) {
-            "use strict";
-
-            if (updateMode === this.RESET_ALL_ON_UPDATE) {
-                this._domains.forEach(function(key, value) {
-                    value.forEach(function(element, index, array) {
-                        array[index].v = null;
-                    });
-                });
-            }
-
-            var temp = {};
-
-            var extractTime = function(d) {
-                return d.t;
-            };
-
-            /*jshint forin:false */
-            for (var d in data) {
-                var date = new Date(d * 1000);
-                var domainUnit = this.getDomain(date)[0].getTime();
-
-                // The current data belongs to a domain that was compressed
-                // Compress the data for the two duplicate hours into the same hour
-                if (this.DSTDomain.indexOf(domainUnit) >= 0) {
-
-                    // Re-assign all data to the first or the second duplicate hours
-                    // depending on which is visible
-                    if (this._domains.has(domainUnit - 3600 * 1000)) {
-                        domainUnit -= 3600 * 1000;
-                    }
-                }
-
-                // Skip if data is not relevant to current domain
-                if (isNaN(d) || !data.hasOwnProperty(d) || !this._domains.has(domainUnit) || !(domainUnit >= +startDate && domainUnit < +endDate)) {
-                    continue;
-                }
-
-                var subDomainsData = this._domains.get(domainUnit);
-
-                if (!temp.hasOwnProperty(domainUnit)) {
-                    temp[domainUnit] = subDomainsData.map(extractTime);
-                }
-
-                var index = temp[domainUnit].indexOf(this._domainType[this.options.subDomain].extractUnit(date));
-
-                if (updateMode === this.RESET_SINGLE_ON_UPDATE) {
-                    subDomainsData[index].v = data[d];
                 } else {
-                    if (!isNaN(subDomainsData[index].v)) {
-                        subDomainsData[index].v += data[d];
-                    } else {
-                        subDomainsData[index].v = data[d];
+                    var url = this.parseURI(source, startDate, endDate);
+                    var requestType = "GET";
+                    if (self.options.dataPostPayload !== null) {
+                        requestType = "POST";
+                    }
+                    var payload = null;
+                    if (self.options.dataPostPayload !== null) {
+                        payload = this.parseURI(self.options.dataPostPayload, startDate, endDate);
+                    }
+
+                    switch (this.options.dataType) {
+                        case "json":
+                            d3Request.json(url, _callback).send(requestType, payload);
+                            break;
+                        case "csv":
+                            d3Request.csv(url, _callback).send(requestType, payload);
+                            break;
+                        case "tsv":
+                            d3Request.tsv(url, _callback).send(requestType, payload);
+                            break;
+                        case "txt":
+                            d3Request.text(url, _callback).send(requestType, payload);
+                            break;
                     }
                 }
-            }
-        }
-
-        parseURI(str, startDate, endDate) {
-            "use strict";
-
-            // Use a timestamp in seconds
-            str = str.replace(/\{\{t:start\}\}/g, startDate.getTime() / 1000);
-            str = str.replace(/\{\{t:end\}\}/g, endDate.getTime() / 1000);
-
-            // Use a string date, following the ISO-8601
-            str = str.replace(/\{\{d:start\}\}/g, startDate.toISOString());
-            str = str.replace(/\{\{d:end\}\}/g, endDate.toISOString());
-
-            return str;
-        }
-
-        interpretCSV(data) {
-            "use strict";
-
-            var d = {};
-            var keys = Object.keys(data[0]);
-            var i, total;
-            for (i = 0, total = data.length; i < total; i++) {
-                d[data[i][keys[0]]] = +data[i][keys[1]];
-            }
-            return d;
-        }
-
-        /**
-         * Handle the calendar layout and dimension
-         *
-         * Expand and shrink the container depending on its children dimension
-         * Also rearrange the children position depending on their dimension,
-         * and the legend position
-         *
-         * @return void
-         */
-        resize() {
-            "use strict";
-
-            var parent = this;
-            var options = parent.options;
-            var legendWidth = options.displayLegend ? (parent.Legend.getDim("width") + options.legendMargin[1] + options.legendMargin[3]) : 0;
-            var legendHeight = options.displayLegend ? (parent.Legend.getDim("height") + options.legendMargin[0] + options.legendMargin[2]) : 0;
-
-            var graphWidth = parent.graphDim.width - options.domainGutter - options.cellPadding;
-            var graphHeight = parent.graphDim.height - options.domainGutter - options.cellPadding;
-
-            this.root.transition().duration(options.animationDuration)
-                .attr("width", function() {
-                    if (options.legendVerticalPosition === "middle" || options.legendVerticalPosition === "center") {
-                        return graphWidth + legendWidth;
-                    }
-                    return Math.max(graphWidth, legendWidth);
-                })
-                .attr("height", function() {
-                    if (options.legendVerticalPosition === "middle" || options.legendVerticalPosition === "center") {
-                        return Math.max(graphHeight, legendHeight);
-                    }
-                    return graphHeight + legendHeight;
-                });
-
-            this.root.select(".graph").transition().duration(options.animationDuration)
-                .attr("y", function() {
-                    if (options.legendVerticalPosition === "top") {
-                        return legendHeight;
-                    }
-                    return 0;
-                })
-                .attr("x", function() {
-                    if (
-                        (options.legendVerticalPosition === "middle" || options.legendVerticalPosition === "center") &&
-                        options.legendHorizontalPosition === "left") {
-                        return legendWidth;
-                    }
-                    return 0;
-
-                });
-        }
-
-        // =========================================================================//
-        // PUBLIC API																//
-        // =========================================================================//
-
-        /**
-         * Shift the calendar forward
-         */
-        next(n) {
-            "use strict";
-
-            if (arguments.length === 0) {
-                n = 1;
-            }
-            return this.loadNextDomain(n);
-        }
-
-        /**
-         * Shift the calendar backward
-         */
-        previous(n) {
-            "use strict";
-
-            if (arguments.length === 0) {
-                n = 1;
-            }
-            return this.loadPreviousDomain(n);
-        }
-
-        /**
-         * Jump directly to a specific date
-         *
-         * JumpTo will scroll the calendar until the wanted domain with the specified
-         * date is visible. Unless you set reset to true, the wanted domain
-         * will not necessarily be the first (leftmost) domain of the calendar.
-         *
-         * @param Date date Jump to the domain containing that date
-         * @param bool reset Whether the wanted domain should be the first domain of the calendar
-         * @param bool True of the calendar was scrolled
-         */
-        jumpTo(date, reset) {
-            "use strict";
-
-            if (arguments.length < 2) {
-                reset = false;
-            }
-            var domains = this.getDomainKeys();
-            var firstDomain = domains[0];
-            var lastDomain = domains[domains.length - 1];
-
-            if (date < firstDomain) {
-                return this.loadPreviousDomain(this.getDomain(firstDomain, date).length);
-            } else {
-                if (reset) {
-                    return this.loadNextDomain(this.getDomain(firstDomain, date).length);
-                }
-
-                if (date > lastDomain) {
-                    return this.loadNextDomain(this.getDomain(lastDomain, date).length);
-                }
-            }
-
-            return false;
-        }
-
-        /**
-         * Navigate back to the start date
-         *
-         * @since  3.3.8
-         * @return void
-         */
-        rewind() {
-            "use strict";
-
-            this.jumpTo(this.options.start, true);
-        }
-
-        /**
-         * Update the calendar with new data
-         *
-         * @param  object|string		dataSource		The calendar's datasource, same type as this.options.data
-         * @param  boolean|function		afterLoad		Whether to execute afterLoad() on the data. Pass directly a function
-         * if you don't want to use the afterLoad() callback
-         */
-        update(dataSource, afterLoad, updateMode) {
-            "use strict";
-
-            if (arguments.length < 2) {
-                afterLoad = true;
-            }
-            if (arguments.length < 3) {
-                updateMode = this.RESET_ALL_ON_UPDATE;
-            }
-
-            var domains = this.getDomainKeys();
-            var self = this;
-            this.getDatas(
-                dataSource,
-                new Date(domains[0]),
-                this.getSubDomain(domains[domains.length - 1]).pop(),
-                function() {
-                    self.fill();
-                },
-                afterLoad,
-                updateMode
-            );
-        }
-
-        /**
-         * Set the legend
-         *
-         * @param array legend an array of integer, representing the different threshold value
-         * @param array colorRange an array of 2 hex colors, for the minimum and maximum colors
-         */
-        setLegend() {
-            "use strict";
-
-            var oldLegend = this.options.legend.slice(0);
-            if (arguments.length >= 1 && Array.isArray(arguments[0])) {
-                this.options.legend = arguments[0];
-            }
-            if (arguments.length >= 2) {
-                if (Array.isArray(arguments[1]) && arguments[1].length >= 2) {
-                    this.options.legendColors = [arguments[1][0], arguments[1][1]];
-                } else {
-                    this.options.legendColors = arguments[1];
-                }
-            }
-
-            if ((arguments.length > 0 && !arrayEquals(oldLegend, this.options.legend)) || arguments.length >= 2) {
-                this.Legend.buildColors();
-                this.fill();
-            }
-
-            this.Legend.redraw(this.graphDim.width - this.options.domainGutter - this.options.cellPadding);
-        }
-
-        /**
-         * Remove the legend
-         *
-         * @return bool False if there is no legend to remove
-         */
-        removeLegend() {
-            "use strict";
-
-            if (!this.options.displayLegend) {
                 return false;
-            }
-            this.options.displayLegend = false;
-            this.Legend.remove();
-            return true;
-        }
-
-        /**
-         * Display the legend
-         *
-         * @return bool False if the legend was already displayed
-         */
-        showLegend() {
-            "use strict";
-
-            if (this.options.displayLegend) {
-                return false;
-            }
-            this.options.displayLegend = true;
-            this.Legend.redraw(this.graphDim.width - this.options.domainGutter - this.options.cellPadding);
-            return true;
-        }
-
-        /**
-         * Highlight dates
-         *
-         * Add a highlight class to a set of dates
-         *
-         * @since  3.3.5
-         * @param  array Array of dates to highlight
-         * @return bool True if dates were highlighted
-         */
-        highlight(args) {
-            "use strict";
-
-            if ((this.options.highlight = this.expandDateSetting(args)).length > 0) {
-                this.fill();
+            case "object":
+                if (source === Object(source)) {
+                    _callback(source);
+                    return false;
+                }
+                /* falls through */
+            default:
+                _callback({});
                 return true;
+        }
+    }
+
+    /**
+     * Populate the calendar internal data
+     *
+     * @param object data
+     * @param constant updateMode
+     * @param Date startDate
+     * @param Date endDate
+     *
+     * @return void
+     */
+    parseDatas(data, updateMode, startDate, endDate) {
+        "use strict";
+
+        if (updateMode === this.RESET_ALL_ON_UPDATE) {
+            this._domains.forEach(function(key, value) {
+                value.forEach(function(element, index, array) {
+                    array[index].v = null;
+                });
+            });
+        }
+
+        var temp = {};
+
+        var extractTime = function(d) {
+            return d.t;
+        };
+
+        /*jshint forin:false */
+        for (var d in data) {
+            var date = new Date(d * 1000);
+            var domainUnit = this.getDomain(date)[0].getTime();
+
+            // The current data belongs to a domain that was compressed
+            // Compress the data for the two duplicate hours into the same hour
+            if (this.DSTDomain.indexOf(domainUnit) >= 0) {
+
+                // Re-assign all data to the first or the second duplicate hours
+                // depending on which is visible
+                if (this._domains.has(domainUnit - 3600 * 1000)) {
+                    domainUnit -= 3600 * 1000;
+                }
             }
+
+            // Skip if data is not relevant to current domain
+            if (isNaN(d) || !data.hasOwnProperty(d) || !this._domains.has(domainUnit) || !(domainUnit >= +startDate && domainUnit < +endDate)) {
+                continue;
+            }
+
+            var subDomainsData = this._domains.get(domainUnit);
+
+            if (!temp.hasOwnProperty(domainUnit)) {
+                temp[domainUnit] = subDomainsData.map(extractTime);
+            }
+
+            var index = temp[domainUnit].indexOf(this._domainType[this.options.subDomain].extractUnit(date));
+
+            if (updateMode === this.RESET_SINGLE_ON_UPDATE) {
+                subDomainsData[index].v = data[d];
+            } else {
+                if (!isNaN(subDomainsData[index].v)) {
+                    subDomainsData[index].v += data[d];
+                } else {
+                    subDomainsData[index].v = data[d];
+                }
+            }
+        }
+    }
+
+    parseURI(str, startDate, endDate) {
+        "use strict";
+
+        // Use a timestamp in seconds
+        str = str.replace(/\{\{t:start\}\}/g, startDate.getTime() / 1000);
+        str = str.replace(/\{\{t:end\}\}/g, endDate.getTime() / 1000);
+
+        // Use a string date, following the ISO-8601
+        str = str.replace(/\{\{d:start\}\}/g, startDate.toISOString());
+        str = str.replace(/\{\{d:end\}\}/g, endDate.toISOString());
+
+        return str;
+    }
+
+    interpretCSV(data) {
+        "use strict";
+
+        var d = {};
+        var keys = Object.keys(data[0]);
+        var i, total;
+        for (i = 0, total = data.length; i < total; i++) {
+            d[data[i][keys[0]]] = +data[i][keys[1]];
+        }
+        return d;
+    }
+
+    /**
+     * Handle the calendar layout and dimension
+     *
+     * Expand and shrink the container depending on its children dimension
+     * Also rearrange the children position depending on their dimension,
+     * and the legend position
+     *
+     * @return void
+     */
+    resize() {
+        "use strict";
+
+        var parent = this;
+        var options = parent.options;
+        var legendWidth = options.displayLegend ? (parent.Legend.getDim("width") + options.legendMargin[1] + options.legendMargin[3]) : 0;
+        var legendHeight = options.displayLegend ? (parent.Legend.getDim("height") + options.legendMargin[0] + options.legendMargin[2]) : 0;
+
+        var graphWidth = parent.graphDim.width - options.domainGutter - options.cellPadding;
+        var graphHeight = parent.graphDim.height - options.domainGutter - options.cellPadding;
+
+        this.root.transition().duration(options.animationDuration)
+            .attr("width", function() {
+                if (options.legendVerticalPosition === "middle" || options.legendVerticalPosition === "center") {
+                    return graphWidth + legendWidth;
+                }
+                return Math.max(graphWidth, legendWidth);
+            })
+            .attr("height", function() {
+                if (options.legendVerticalPosition === "middle" || options.legendVerticalPosition === "center") {
+                    return Math.max(graphHeight, legendHeight);
+                }
+                return graphHeight + legendHeight;
+            });
+
+        this.root.select(".graph").transition().duration(options.animationDuration)
+            .attr("y", function() {
+                if (options.legendVerticalPosition === "top") {
+                    return legendHeight;
+                }
+                return 0;
+            })
+            .attr("x", function() {
+                if (
+                    (options.legendVerticalPosition === "middle" || options.legendVerticalPosition === "center") &&
+                    options.legendHorizontalPosition === "left") {
+                    return legendWidth;
+                }
+                return 0;
+
+            });
+    }
+
+    // =========================================================================//
+    // PUBLIC API																//
+    // =========================================================================//
+
+    /**
+     * Shift the calendar forward
+     */
+    next(n) {
+        "use strict";
+
+        if (arguments.length === 0) {
+            n = 1;
+        }
+        return this.loadNextDomain(n);
+    }
+
+    /**
+     * Shift the calendar backward
+     */
+    previous(n) {
+        "use strict";
+
+        if (arguments.length === 0) {
+            n = 1;
+        }
+        return this.loadPreviousDomain(n);
+    }
+
+    /**
+     * Jump directly to a specific date
+     *
+     * JumpTo will scroll the calendar until the wanted domain with the specified
+     * date is visible. Unless you set reset to true, the wanted domain
+     * will not necessarily be the first (leftmost) domain of the calendar.
+     *
+     * @param Date date Jump to the domain containing that date
+     * @param bool reset Whether the wanted domain should be the first domain of the calendar
+     * @param bool True of the calendar was scrolled
+     */
+    jumpTo(date, reset) {
+        "use strict";
+
+        if (arguments.length < 2) {
+            reset = false;
+        }
+        var domains = this.getDomainKeys();
+        var firstDomain = domains[0];
+        var lastDomain = domains[domains.length - 1];
+
+        if (date < firstDomain) {
+            return this.loadPreviousDomain(this.getDomain(firstDomain, date).length);
+        } else {
+            if (reset) {
+                return this.loadNextDomain(this.getDomain(firstDomain, date).length);
+            }
+
+            if (date > lastDomain) {
+                return this.loadNextDomain(this.getDomain(lastDomain, date).length);
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Navigate back to the start date
+     *
+     * @since  3.3.8
+     * @return void
+     */
+    rewind() {
+        "use strict";
+
+        this.jumpTo(this.options.start, true);
+    }
+
+    /**
+     * Update the calendar with new data
+     *
+     * @param  object|string		dataSource		The calendar's datasource, same type as this.options.data
+     * @param  boolean|function		afterLoad		Whether to execute afterLoad() on the data. Pass directly a function
+     * if you don't want to use the afterLoad() callback
+     */
+    update(dataSource, afterLoad, updateMode) {
+        "use strict";
+
+        if (arguments.length < 2) {
+            afterLoad = true;
+        }
+        if (arguments.length < 3) {
+            updateMode = this.RESET_ALL_ON_UPDATE;
+        }
+
+        var domains = this.getDomainKeys();
+        var self = this;
+        this.getDatas(
+            dataSource,
+            new Date(domains[0]),
+            this.getSubDomain(domains[domains.length - 1]).pop(),
+            function() {
+                self.fill();
+            },
+            afterLoad,
+            updateMode
+        );
+    }
+
+    /**
+     * Set the legend
+     *
+     * @param array legend an array of integer, representing the different threshold value
+     * @param array colorRange an array of 2 hex colors, for the minimum and maximum colors
+     */
+    setLegend() {
+        "use strict";
+
+        var oldLegend = this.options.legend.slice(0);
+        if (arguments.length >= 1 && Array.isArray(arguments[0])) {
+            this.options.legend = arguments[0];
+        }
+        if (arguments.length >= 2) {
+            if (Array.isArray(arguments[1]) && arguments[1].length >= 2) {
+                this.options.legendColors = [arguments[1][0], arguments[1][1]];
+            } else {
+                this.options.legendColors = arguments[1];
+            }
+        }
+
+        if ((arguments.length > 0 && !arrayEquals(oldLegend, this.options.legend)) || arguments.length >= 2) {
+            this.Legend.buildColors();
+            this.fill();
+        }
+
+        this.Legend.redraw(this.graphDim.width - this.options.domainGutter - this.options.cellPadding);
+    }
+
+    /**
+     * Remove the legend
+     *
+     * @return bool False if there is no legend to remove
+     */
+    removeLegend() {
+        "use strict";
+
+        if (!this.options.displayLegend) {
             return false;
         }
+        this.options.displayLegend = false;
+        this.Legend.remove();
+        return true;
+    }
 
-        /**
-         * Destroy the calendar
-         *
-         * Usage: cal = cal.destroy();
-         *
-         * @since  3.3.6
-         * @param function A callback function to trigger after destroying the calendar
-         * @return null
-         */
-        destroy(callback) {
-            "use strict";
+    /**
+     * Display the legend
+     *
+     * @return bool False if the legend was already displayed
+     */
+    showLegend() {
+        "use strict";
 
-            this.root.transition().duration(this.options.animationDuration)
-                .attr("width", 0)
-                .attr("height", 0)
-                .remove()
-                .each(function() {
-                    if (typeof callback === "function") {
-                        callback();
-                    } else if (typeof callback !== "undefined") {
-                        console.log("Provided callback for destroy() is not a function.");
-                    }
-                });
+        if (this.options.displayLegend) {
+            return false;
+        }
+        this.options.displayLegend = true;
+        this.Legend.redraw(this.graphDim.width - this.options.domainGutter - this.options.cellPadding);
+        return true;
+    }
 
-            return null;
+    /**
+     * Highlight dates
+     *
+     * Add a highlight class to a set of dates
+     *
+     * @since  3.3.5
+     * @param  array Array of dates to highlight
+     * @return bool True if dates were highlighted
+     */
+    highlight(args) {
+        "use strict";
+
+        if ((this.options.highlight = this.expandDateSetting(args)).length > 0) {
+            this.fill();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Destroy the calendar
+     *
+     * Usage: cal = cal.destroy();
+     *
+     * @since  3.3.6
+     * @param function A callback function to trigger after destroying the calendar
+     * @return null
+     */
+    destroy(callback) {
+        "use strict";
+
+        this.root.transition().duration(this.options.animationDuration)
+            .attr("width", 0)
+            .attr("height", 0)
+            .remove()
+            .each(function() {
+                if (typeof callback === "function") {
+                    callback();
+                } else if (typeof callback !== "undefined") {
+                    console.log("Provided callback for destroy() is not a function.");
+                }
+            });
+
+        return null;
+    }
+
+    getSVG() {
+        "use strict";
+
+        var styles = {
+            ".cal-heatmap-container": {},
+            ".graph": {},
+            ".graph-rect": {},
+            "rect.highlight": {},
+            "rect.now": {},
+            "rect.highlight-now": {},
+            "text.highlight": {},
+            "text.now": {},
+            "text.highlight-now": {},
+            ".domain-background": {},
+            ".graph-label": {},
+            ".subdomain-text": {},
+            ".q0": {},
+            ".qi": {}
+        };
+
+        for (var j = 1, total = this.options.legend.length + 1; j <= total; j++) {
+            styles[".q" + j] = {};
         }
 
-        getSVG() {
-            "use strict";
+        var root = this.root;
 
-            var styles = {
-                ".cal-heatmap-container": {},
-                ".graph": {},
-                ".graph-rect": {},
-                "rect.highlight": {},
-                "rect.now": {},
-                "rect.highlight-now": {},
-                "text.highlight": {},
-                "text.now": {},
-                "text.highlight-now": {},
-                ".domain-background": {},
-                ".graph-label": {},
-                ".subdomain-text": {},
-                ".q0": {},
-                ".qi": {}
-            };
+        var whitelistStyles = [
+            // SVG specific properties
+            "stroke", "stroke-width", "stroke-opacity", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-miterlimit",
+            "fill", "fill-opacity", "fill-rule",
+            "marker", "marker-start", "marker-mid", "marker-end",
+            "alignement-baseline", "baseline-shift", "dominant-baseline", "glyph-orientation-horizontal", "glyph-orientation-vertical", "kerning", "text-anchor",
+            "shape-rendering",
 
-            for (var j = 1, total = this.options.legend.length + 1; j <= total; j++) {
-                styles[".q" + j] = {};
+            // Text Specific properties
+            "text-transform", "font-family", "font", "font-size", "font-weight"
+        ];
+
+        var filterStyles = function(attribute, property, value) {
+            if (whitelistStyles.indexOf(property) !== -1) {
+                styles[attribute][property] = value;
+            }
+        };
+
+        var getElement = function(e) {
+            return root.select(e).node();
+        };
+
+        /* jshint forin:false */
+        for (var element in styles) {
+            if (!styles.hasOwnProperty(element)) {
+                continue;
             }
 
-            var root = this.root;
+            var dom = getElement(element);
 
-            var whitelistStyles = [
-                // SVG specific properties
-                "stroke", "stroke-width", "stroke-opacity", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-miterlimit",
-                "fill", "fill-opacity", "fill-rule",
-                "marker", "marker-start", "marker-mid", "marker-end",
-                "alignement-baseline", "baseline-shift", "dominant-baseline", "glyph-orientation-horizontal", "glyph-orientation-vertical", "kerning", "text-anchor",
-                "shape-rendering",
+            if (dom === null) {
+                continue;
+            }
 
-                // Text Specific properties
-                "text-transform", "font-family", "font", "font-size", "font-weight"
-            ];
-
-            var filterStyles = function(attribute, property, value) {
-                if (whitelistStyles.indexOf(property) !== -1) {
-                    styles[attribute][property] = value;
-                }
-            };
-
-            var getElement = function(e) {
-                return root.select(e).node();
-            };
-
-            /* jshint forin:false */
-            for (var element in styles) {
-                if (!styles.hasOwnProperty(element)) {
-                    continue;
-                }
-
-                var dom = getElement(element);
-
-                if (dom === null) {
-                    continue;
-                }
-
-                // The DOM Level 2 CSS way
-                /* jshint maxdepth: false */
-                if ("getComputedStyle" in window) {
-                    var cs = getComputedStyle(dom, null);
-                    if (cs.length !== 0) {
-                        for (var i = 0; i < cs.length; i++) {
-                            filterStyles(element, cs.item(i), cs.getPropertyValue(cs.item(i)));
-                        }
-
-                        // Opera workaround. Opera doesn"t support `item`/`length`
-                        // on CSSStyleDeclaration.
-                    } else {
-                        for (var k in cs) {
-                            if (cs.hasOwnProperty(k)) {
-                                filterStyles(element, k, cs[k]);
-                            }
-                        }
+            // The DOM Level 2 CSS way
+            /* jshint maxdepth: false */
+            if ("getComputedStyle" in window) {
+                var cs = getComputedStyle(dom, null);
+                if (cs.length !== 0) {
+                    for (var i = 0; i < cs.length; i++) {
+                        filterStyles(element, cs.item(i), cs.getPropertyValue(cs.item(i)));
                     }
 
-                    // The IE way
-                } else if ("currentStyle" in dom) {
-                    var css = dom.currentStyle;
-                    for (var p in css) {
-                        filterStyles(element, p, css[p]);
+                    // Opera workaround. Opera doesn"t support `item`/`length`
+                    // on CSSStyleDeclaration.
+                } else {
+                    for (var k in cs) {
+                        if (cs.hasOwnProperty(k)) {
+                            filterStyles(element, k, cs[k]);
+                        }
                     }
                 }
-            }
 
-            var string = "<svg xmlns=\"http://www.w3.org/2000/svg\" " +
-                "xmlns:xlink=\"http://www.w3.org/1999/xlink\"><style type=\"text/css\"><![CDATA[ ";
-
-            for (var style in styles) {
-                string += style + " {\n";
-                for (var l in styles[style]) {
-                    string += "\t" + l + ":" + styles[style][l] + ";\n";
+                // The IE way
+            } else if ("currentStyle" in dom) {
+                var css = dom.currentStyle;
+                for (var p in css) {
+                    filterStyles(element, p, css[p]);
                 }
-                string += "}\n";
             }
-
-            string += "]]></style>";
-            string += new XMLSerializer().serializeToString(this.root.node());
-            string += "</svg>";
-
-            return string;
         }
-};
+
+        var string = "<svg xmlns=\"http://www.w3.org/2000/svg\" " +
+            "xmlns:xlink=\"http://www.w3.org/1999/xlink\"><style type=\"text/css\"><![CDATA[ ";
+
+        for (var style in styles) {
+            string += style + " {\n";
+            for (var l in styles[style]) {
+                string += "\t" + l + ":" + styles[style][l] + ";\n";
+            }
+            string += "}\n";
+        }
+
+        string += "]]></style>";
+        string += new XMLSerializer().serializeToString(this.root.node());
+        string += "</svg>";
+
+        return string;
+    }
+}
 
 // =========================================================================//
 // DOMAIN POSITION COMPUTATION												//
@@ -3122,7 +3122,7 @@ class DomainPosition {
     constructor() {
         "use strict";
 
-        this.positions = d3.map();
+        this.positions = d3Collection.map();
     }
 
     getPosition(d) {
@@ -3416,15 +3416,15 @@ class Legend {
             _legend.unshift(_legend[0] - (_legend[_legend.length - 1] - _legend[0]) / _legend.length);
         }
 
-        var colorScale = d3.scaleLinear()
+        var colorScale = d3Scale.scaleLinear()
             .range(_colorRange)
-            .interpolate(d3.interpolateHcl)
-            .domain([d3.min(_legend), d3.max(_legend)]);
+            .interpolate(d3Interpolate.interpolateHcl)
+            .domain([d3Array.min(_legend), d3Array.max(_legend)]);
 
         var legendColors = _legend.map(function(element) {
             return colorScale(element);
         });
-        this.calendar.legendScale = d3.scaleThreshold().domain(options.legend).range(legendColors);
+        this.calendar.legendScale = d3Scale.scaleThreshold().domain(options.legend).range(legendColors);
 
         return true;
     }
@@ -3528,7 +3528,7 @@ function arrayEquals(arrayA, arrayB) {
     return true;
 }
 
-return calHeatmap;
+return CalHeatMap;
 
 })));
 //# sourceMappingURL=cal-heatmap.umd.js.map
