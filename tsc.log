@@ -1,0 +1,70 @@
+src/cal-heatmap.ts(438,114): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number' or an enum type.
+src/cal-heatmap.ts(438,183): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number' or an enum type.
+src/cal-heatmap.ts(440,76): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number' or an enum type.
+src/cal-heatmap.ts(440,132): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number' or an enum type.
+src/cal-heatmap.ts(451,21): error TS2354: No best common type exists among return expressions.
+src/cal-heatmap.ts(459,40): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number' or an enum type.
+src/cal-heatmap.ts(459,64): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number' or an enum type.
+src/cal-heatmap.ts(462,56): error TS2346: Supplied parameters do not match any signature of call target.
+src/cal-heatmap.ts(472,41): error TS2346: Supplied parameters do not match any signature of call target.
+src/cal-heatmap.ts(504,74): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number' or an enum type.
+src/cal-heatmap.ts(504,143): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number' or an enum type.
+src/cal-heatmap.ts(518,51): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number' or an enum type.
+src/cal-heatmap.ts(524,32): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number' or an enum type.
+src/cal-heatmap.ts(550,28): error TS2346: Supplied parameters do not match any signature of call target.
+src/cal-heatmap.ts(553,28): error TS2346: Supplied parameters do not match any signature of call target.
+src/cal-heatmap.ts(670,13): error TS2346: Supplied parameters do not match any signature of call target.
+src/cal-heatmap.ts(740,17): error TS2346: Supplied parameters do not match any signature of call target.
+src/cal-heatmap.ts(745,25): error TS2346: Supplied parameters do not match any signature of call target.
+src/cal-heatmap.ts(753,13): error TS2346: Supplied parameters do not match any signature of call target.
+src/cal-heatmap.ts(754,13): error TS2346: Supplied parameters do not match any signature of call target.
+src/cal-heatmap.ts(754,44): error TS2346: Supplied parameters do not match any signature of call target.
+src/cal-heatmap.ts(1012,38): error TS2346: Supplied parameters do not match any signature of call target.
+src/cal-heatmap.ts(1026,38): error TS2346: Supplied parameters do not match any signature of call target.
+src/cal-heatmap.ts(1030,38): error TS2346: Supplied parameters do not match any signature of call target.
+src/cal-heatmap.ts(1069,62): error TS2346: Supplied parameters do not match any signature of call target.
+src/cal-heatmap.ts(1069,78): error TS2346: Supplied parameters do not match any signature of call target.
+src/cal-heatmap.ts(1085,63): error TS2346: Supplied parameters do not match any signature of call target.
+src/cal-heatmap.ts(1085,113): error TS2346: Supplied parameters do not match any signature of call target.
+src/cal-heatmap.ts(1442,26): error TS2354: No best common type exists among return expressions.
+src/cal-heatmap.ts(1624,16): error TS2346: Supplied parameters do not match any signature of call target.
+src/cal-heatmap.ts(1633,16): error TS2346: Supplied parameters do not match any signature of call target.
+src/cal-heatmap.ts(1657,16): error TS2346: Supplied parameters do not match any signature of call target.
+src/cal-heatmap.ts(1673,16): error TS2346: Supplied parameters do not match any signature of call target.
+src/cal-heatmap.ts(1688,16): error TS2346: Supplied parameters do not match any signature of call target.
+src/cal-heatmap.ts(1700,16): error TS2346: Supplied parameters do not match any signature of call target.
+src/cal-heatmap.ts(1769,24): error TS2346: Supplied parameters do not match any signature of call target.
+src/cal-heatmap.ts(1796,77): error TS2346: Supplied parameters do not match any signature of call target.
+src/cal-heatmap.ts(1799,40): error TS2346: Supplied parameters do not match any signature of call target.
+src/cal-heatmap.ts(1871,9): error TS2346: Supplied parameters do not match any signature of call target.
+src/cal-heatmap.ts(2154,16): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number' or an enum type.
+src/cal-heatmap.ts(2154,40): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number' or an enum type.
+src/cal-heatmap.ts(2282,37): error TS2345: Argument of type 'Date' is not assignable to parameter of type 'number'.
+src/cal-heatmap.ts(2282,60): error TS2345: Argument of type 'Date' is not assignable to parameter of type 'number'.
+src/cal-heatmap.ts(2304,42): error TS2345: Argument of type 'Date' is not assignable to parameter of type 'number'.
+src/cal-heatmap.ts(2304,65): error TS2345: Argument of type 'Date' is not assignable to parameter of type 'number'.
+src/cal-heatmap.ts(2312,37): error TS2345: Argument of type 'number' is not assignable to parameter of type 'Date'.
+src/cal-heatmap.ts(2347,34): error TS2345: Argument of type 'Date' is not assignable to parameter of type 'number'.
+src/cal-heatmap.ts(2347,57): error TS2345: Argument of type 'Date' is not assignable to parameter of type 'number'.
+src/cal-heatmap.ts(2383,25): error TS2345: Argument of type 'number' is not assignable to parameter of type 'Date'.
+src/cal-heatmap.ts(2384,25): error TS2345: Argument of type 'number' is not assignable to parameter of type 'Date'.
+src/cal-heatmap.ts(2406,36): error TS2345: Argument of type 'Date' is not assignable to parameter of type 'number'.
+src/cal-heatmap.ts(2406,59): error TS2345: Argument of type 'Date' is not assignable to parameter of type 'number'.
+src/cal-heatmap.ts(2427,35): error TS2345: Argument of type 'Date' is not assignable to parameter of type 'number'.
+src/cal-heatmap.ts(2427,58): error TS2345: Argument of type 'Date' is not assignable to parameter of type 'number'.
+src/cal-heatmap.ts(2458,25): error TS2346: Supplied parameters do not match any signature of call target.
+src/cal-heatmap.ts(2528,40): error TS2354: No best common type exists among return expressions.
+src/cal-heatmap.ts(2535,21): error TS2322: Type 'number' is not assignable to type 'string'.
+src/cal-heatmap.ts(2536,21): error TS2356: An arithmetic operand must be of type 'any', 'number' or an enum type.
+src/cal-heatmap.ts(2539,24): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number' or an enum type.
+src/cal-heatmap.ts(2539,36): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number' or an enum type.
+src/cal-heatmap.ts(2712,33): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number' or an enum type.
+src/cal-heatmap.ts(2713,30): error TS2346: Supplied parameters do not match any signature of call target.
+src/cal-heatmap.ts(2727,23): error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'.
+src/cal-heatmap.ts(2929,17): error TS2346: Supplied parameters do not match any signature of call target.
+src/cal-heatmap.ts(2959,13): error TS2346: Supplied parameters do not match any signature of call target.
+src/cal-heatmap.ts(3010,13): error TS2346: Supplied parameters do not match any signature of call target.
+src/cal-heatmap.ts(3158,16): error TS2304: Cannot find name 'Map'.
+src/cal-heatmap.ts(3460,26): error TS2345: Argument of type '(a: string | ColorCommonInstance, b: string | ColorCommonInstance) => (t: number) => string' is not assignable to parameter of type 'InterpolatorFactory<number, string>'.
+  Types of parameters 'a' and 'a' are incompatible.
+    Type 'number' is not assignable to type 'string | ColorCommonInstance'.

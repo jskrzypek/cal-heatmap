@@ -18,6 +18,8 @@
     "d3": "^4.4.0"
   },
   "devDependencies": {
+    "@types/d3": "^4.4.0",
+    "browser-sync": "^2.18.5",
     "d3": "^4.4.0",
     "grunt": "~0.4.5",
     "grunt-contrib-concat": "~0.5.0",
@@ -42,19 +44,24 @@
     "rollup-plugin-conditional": "^0.1.4",
     "rollup-plugin-node-resolve": "^2.0.0",
     "rollup-plugin-uglify": "^1.0.1",
+    "typescript": "^2.0.10",
     "uglify-js": "github:mishoo/UglifyJS2#harmony"
   },
   "scripts": {
-    "test": "grunt travis --verbose; ./node_modules/karma/bin/karma start --single-run --browsers PhantomJS",
-    "all": "run-p build build:**",
-    "build:es2015": "TARGET=es rollup -c rollup.config.js",
-    "build:es2015:full": "FULL=1 TARGET=es rollup -c rollup.config.js",
-    "build:es2015:min": "MIN=1 TARGET=es rollup -c rollup.config.js",
-    "build:es2015:min:full": "FULL=1 MIN=1 TARGET=es rollup -c rollup.config.js",
-    "build": "rollup -c rollup.config.js",
-    "build:full": "FULL=1 rollup -c rollup.config.js",
-    "build:min": "MIN=1 rollup -c rollup.config.js",
-    "build:min:full": "FULL=1 MIN=1 rollup -c rollup.config.js"
+    "test": "browser-sync start --server=. --index=test/index.html --files=\"cal-heatmap.umd.js\" --port 5555 --https --no-ghost-mode --d --display-reasons --display-modules & npm run build:umd",
+    "test:ts": "browser-sync start --server=. --index=test/index.html --files=\"cal-heatmap.ts.umd.js\" --port 5555 --https --no-ghost-mode --d --display-reasons --display-modules & npm run compile:build",
+    "all": "./node_modules/.bin/run-p build build:**",
+    "compile": "./node_modules/.bin/tsc",
+    "compile:log": "rm -f tsc.log && ./node_modules/.bin/tsc >tsc.log",
+    "compile:build": "npm run compile && TSC=1 npm run build:umd",
+    "build:es2015": "TARGET=es ./node_modules/.bin/rollup -c rollup.config.js",
+    "build:es2015:full": "FULL=1 TARGET=es ./node_modules/.bin/rollup -c rollup.config.js",
+    "build:es2015:min": "MIN=1 TARGET=es ./node_modules/.bin/rollup -c rollup.config.js",
+    "build:es2015:min:full": "FULL=1 MIN=1 TARGET=es ./node_modules/.bin/rollup -c rollup.config.js",
+    "build:umd": "rollup -c rollup.config.js",
+    "build:umd:full": "FULL=1 ./node_modules/.bin/rollup -c rollup.config.js",
+    "build:umd:min": "MIN=1 ./node_modules/.bin/rollup -c rollup.config.js",
+    "build:umd:min:full": "FULL=1 MIN=1 ./node_modules/.bin/rollup -c rollup.config.js"
   },
   "repository": {
     "type": "git",

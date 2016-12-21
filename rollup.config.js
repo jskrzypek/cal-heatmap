@@ -5,8 +5,18 @@ import uglify from 'rollup-plugin-uglify';
 const min = process.env.MIN || false;
 const target = process.env.TARGET || 'umd';
 const full = process.env.FULL || false;
+const tsc = process.env.TSC || false;
+const src = tsc ? 'dist' : 'src';
 
-let destFileSuffix = target === 'es' ? 'es2015' : target;
+let destFileSuffix = ''
+if (tsc) {
+  destFileSuffix += '.ts' 
+}
+if (target === 'es') {
+  destFileSuffix += '.es2015';
+} else {
+  destFileSuffix += `.${target}`;
+}
 if (full) {
   destFileSuffix += '.full'; 
 } 
@@ -15,9 +25,9 @@ if (min) {
 } 
 
 export default {
-  entry: 'src/cal-heatmap.js',
+  entry: `${src}/cal-heatmap.js`,
   exports: 'default',
-  dest: `cal-heatmap.${destFileSuffix}.js`,
+  dest: `cal-heatmap${destFileSuffix}.js`,
   format: target,
   sourceMap: true,
   moduleName: 'CalHeatMap',

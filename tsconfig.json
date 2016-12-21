@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "target": "ES5",
+        "module": "es2015",
+        "moduleResolution": "node",
+        "declaration": true,
+        "noEmitOnError": true,
+        "sourceMap": true,
+        "removeComments": true,
+        "noEmitHelpers": false,
+        "noImplicitAny": false,
+        "noUnusedParameters": false,
+        "allowSyntheticDefaultImports": true,
+        "noUnusedLocals": false,
+        "outDir": "dist",
+        "typeRoots": [
+            "node_modules/@types"
+        ]
+    },
+    "compileOnSave": false,
+    "buildOnSave": false,
+    "files": ["src/cal-heatmap.ts"]
+}
